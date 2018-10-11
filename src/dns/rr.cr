@@ -1,0 +1,2 @@
+class DNS::RR
+end
