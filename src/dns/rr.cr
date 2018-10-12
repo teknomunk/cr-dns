@@ -1,2 +1,133 @@
 class DNS::RR
+	enum Type
+		# Pseudo record types
+		ANY			= 255
+		AXFR			= 252
+		IXFR			= 251
+		OPT			= 41
+
+		# Active record types
+		A			= 1
+		AAAA			= 28
+		AFSDB		= 18
+		APL			= 42
+		CAA			= 257
+		CDNSKEY		= 60
+		CDS			= 59
+		CERT			= 37
+		CNAME		= 5
+		DHCID		= 49
+		DLV			= 32769
+		DNAME		= 39
+		DNSKEY		= 48
+		DS			= 43
+		HIP			= 55
+		IPSECKEY		= 25
+		KX			= 36
+		LOC			= 29
+		MX			= 15
+		NAPTR		= 35
+		NS			= 2
+		NSEC			= 47
+		NSEC3		= 50
+		NSEC3PARAM	= 51
+		OPENPGPKEY	= 61
+		PTR			= 12
+		RRSIG		= 46
+		RP			= 17
+		SIG			= 24
+		SOA			= 6
+		SRV			= 33
+		SSHFP		= 44
+		TA			= 32768
+		TKEY			= 249
+		TLSA			= 52
+		TSIG			= 250
+		TXT			= 16
+		URI			= 256
+
+		# Obsolete record types
+		MD			= 3
+		MF			= 4
+		MAILA		= 254
+		MB			= 7
+		MG			= 8
+		MR			= 9
+		MINFO		= 14
+		MAILB		= 253
+		WKS			= 11
+		NB			= 32
+		NBSTAT		= 33
+		NULL			= 10
+		A6			= 38
+		NXT			= 30
+		KEY			= 25
+		HINFO		= 13
+		X25			= 19
+		ISDN			= 20
+		RT			= 21
+		NSAP			= 22
+		NSAP_PTR		= 23
+		PX			= 26
+		EID			= 31
+		NIMLOC		= 32
+		ATMA			= 34
+		SINK			= 40
+		GPOS			= 27
+		UINFO		= 100
+		UID			= 101
+		GID			= 102
+		UNSPEC		= 103
+		SPF			= 99
+	end
+	enum Cls
+		IN = 1
+	end
+	property name : String = "."
+	property type : Type = Type::ANY
+	property cls : Cls = Cls::IN
+	property ttl : UInt32 = 0
+	property raw_data : String = ""
+
+	def self.decode_query( io : IO, packet : Bytes ) : DNS::RR
+		rr = DNS::RR.new()
+		rr.name = parse_name(io,packet)
+		rr.type = Type.new(io.read_network_short.to_i32)
+		rr.cls = Cls.new(io.read_network_short.to_i32)
+		
+		return rr
+	end
+	def self.decode( io : IO, packet : Bytes ) : DNS::RR
+		rr = decode_query(io,packet)
+		rr.ttl = io.read_network_long
+		data_length = io.read_network_short
+		if data_length != 0
+			data = io.gets(data_length)
+			raise "Expecting #{data_length} bytes" if data.nil?
+
+			rr.raw_data = data
+		end
+		return rr
+	end
+	def data() : String
+		case type
+			when Type::A
+				@raw_data.bytes.map {|s| "%d" % s }.join(".")
+			else
+				@raw_data
+		end
+	end
+	def data=( s : String )
+	end
+	def inspect( io : IO )
+		io << "#<DNS::RR::"
+		io << @cls
+		io << "::"
+		io << @type
+		io << " "
+		@name.inspect(io)
+		io << " = "
+		data.inspect(io)
+		io << ">"
+	end
 end

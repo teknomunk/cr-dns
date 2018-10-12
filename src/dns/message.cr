@@ -1,3 +1,13 @@
+class IO
+	def read_network_short()
+		b0 = read_byte
+		b1 = read_byte
+		raise "Expecting two bytes" if b0.nil? || b1.nil?
+
+		b0.to_u16 << 8 | b1
+	end
+end
+
 class DNS::Message
 	enum Type
 		Query
@@ -42,10 +52,15 @@ class DNS::Message
 	property additional : Array(DNS::RR) = [] of DNS::RR
 
 	def self.decode( packet : Bytes )
+		decode( IO::Memory.new(packet), packet )
+	end
+
+	def self.decode( io : IO, packet : Bytes )
 		msg = DNS::Message.new
-		msg.id = packet[0].to_u16 << 8 | packet[1]
-		msg.query = packet[2] & 0x80 == 0x80 ? Type::Response : Type::Query
-		case (packet[2] >> 3 ) & 0x0F
+		msg.id = io.read_network_short
+		flags = io.read_network_short
+		msg.query = flags & 0x8000 == 0x8000 ? Type::Response : Type::Query
+		case (flags >> 11) & 0x0F
 			when 0
 				msg.query_type = QueryType::Query
 			when 1
@@ -58,13 +73,13 @@ class DNS::Message
 				msg.query_type = QueryType::Update
 		end
 
-		msg.authoritative = !!(packet[2] & 0x04 == 0x04)
-		msg.truncated = !!(packet[2] & 0x02 == 0x02)
-		msg.recursion_desired = !!(packet[2] & 0x01 == 0x01)
-		msg.recursion_available = !!(packet[3] & 0x80 == 0x80)
-		msg.authenticated = !!(packet[3] & 0x20 == 0x20)
-		msg.accept_non_auth = !!(packet[3] & 0x10 == 0x10)
-		case packet[3]&0x0F
+		msg.authoritative = !!(flags & 0x0400 == 0x0400)
+		msg.truncated = !!(flags & 0x0200 == 0x0200)
+		msg.recursion_desired = !!(flags & 0x0100 == 0x0100)
+		msg.recursion_available = !!(flags & 0x0080 == 0x0080)
+		msg.authenticated = !!(flags & 0x0020 == 0x0020)
+		msg.accept_non_auth = !!(flags & 0x0010 == 0x0010)
+		case flags&0x0F
 			when 0
 				msg.response_code = ResponseCode::NoError
 			when 1
@@ -91,13 +106,33 @@ class DNS::Message
 				msg.response_code = ResponseCode::ServerFailure
 		end
 
-		question_count = packet[4].to_u16 << 8 | packet[5]
-		answer_record_count = packet[6].to_u16 << 8 | packet[7]
-		authority_count = packet[8].to_u16 << 8 | packet[9]
-		additional_record_count = packet[10].to_u16 << 8 | packet[11]
+		#p = packet + 12
+
+		question_count = io.read_network_short #packet[4].to_u16 << 8 | packet[5]
+		answer_record_count = io.read_network_short #packet[6].to_u16 << 8 | packet[7]
+		authority_count = io.read_network_short #packet[8].to_u16 << 8 | packet[9]
+		additional_record_count = io.read_network_short #packet[10].to_u16 << 8 | packet[11]
 
 		question_count.times {
-			
+			rr = DNS::RR.decode_query(io,packet)
+			msg.questions.push(rr) if !rr.nil?
 		}
+
+		answer_record_count.times {
+			rr = DNS::RR.decode(io,packet)
+			msg.answers.push(rr) if !rr.nil?
+		}
+
+		authority_count.times {
+			rr = DNS::RR.decode(io,packet)
+			msg.answers.push(rr) if !rr.nil?
+		}
+
+		additional_record_count.times {
+			rr = DNS::RR.decode(io,packet)
+			msg.additional.push(rr) if !rr.nil?
+		}
+
+		return msg
 	end
 end
