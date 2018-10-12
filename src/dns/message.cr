@@ -1,12 +1,3 @@
-class IO
-	def read_network_short()
-		b0 = read_byte
-		b1 = read_byte
-		raise "Expecting two bytes" if b0.nil? || b1.nil?
-
-		b0.to_u16 << 8 | b1
-	end
-end
 
 class DNS::Message
 	enum Type
