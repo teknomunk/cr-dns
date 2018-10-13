@@ -26,7 +26,15 @@ describe DNS do
 			msg.answers[0].type.should eq(DNS::RR::A)
 			msg.answers[0].name.should eq("media-server.polaris.lan.")
 			msg.answers[0].data.should eq("192.168.20.9")
-			puts msg.inspect
+			msg.answers[0].ttl.should eq(10)
+
+			msg.additional[0].type.should eq(DNS::RR::Type::OPT)
+			if (opt=msg.additional[0]).is_a?(DNS::RR::OPT)
+				opt.udp_payload_size.should eq(4096)
+				opt.accept_dnssec.should eq(true)
+				opt.options.size.should eq(0)
+			end
+			#puts msg.inspect
 		end
 		describe "#encode" do
 			msg = DNS::Message.new
@@ -48,13 +56,15 @@ describe DNS do
 			rr.type = DNS::RR::A
 			rr.name = "media-server.polaris.lan."
 			rr.data = "192.168.20.9"
+			rr.ttl = 10
 			msg.answers.push(rr)
 
-			rr = DNS::RR.new
-			rr.type = DNS::RR::Type::OPT
+			rr = DNS::RR::OPT.new
+			rr.udp_payload_size = 4096
+			rr.accept_dnssec = true
 			msg.additional.push(rr)
 
-			puts msg.inspect
+			#puts msg.inspect
 			msg.encode().should eq(
 			      ("295785900001"+
 			       "0001000000010c6d656469612d736572"+

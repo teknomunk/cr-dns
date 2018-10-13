@@ -29,15 +29,13 @@ class DNS::RR
 		return parts.join(".")
 	end
 	def self.encode_name( name : String, io : IO, packet : Bytes )
-		puts "encode_name( name = #{name}, io, packet )"
 		if name == "."
-			parts = [""]
+			io.write_byte 0_u8
+			return
 		else
 			parts = name.split(".")
 			parts.pop() if parts[-1] == ""
 		end
-
-		puts "parts = #{parts.inspect}"
 
 		parts = parts.map {|part|
 			i = IO::Memory.new()
@@ -46,25 +44,20 @@ class DNS::RR
 			i.to_slice
 		}
 
-		puts "parts = #{parts.inspect}"
-
 		i = 0
 		i_limit = parts.size
 		while i < i_limit
 			substr = Bytes.concat_slices(parts[i..-1])
 			if substr.size >= 2 && (idx=io.to_slice.substring_search(substr))
-				puts "idx=#{idx}"
 				io.write_network_short( 0xC000_u16 | idx )
-				break
+				return
 			else
 				io.write parts[i]
 			end
 			i += 1
 		end
 
-		puts "io= #{io.to_slice.inspect}"
-
-		puts parts.inspect
+		io.write_byte 0_u8
 	end
 
 end

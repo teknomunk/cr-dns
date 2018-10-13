@@ -1,10 +1,10 @@
 struct Slice(T)
 	def substring_search( substr : Slice(T) ) : Int32?
-		puts "substr: #{substr.inspect}"
+#		puts "substr: #{substr.inspect}"
 		i = 0
-		puts "self= #{self.inspect}"
+#		puts "self= #{self.inspect}"
 		i_limit = size - substr.size + 1
-		puts "i_limit = #{i_limit}"
+#		puts "i_limit = #{i_limit}"
 		while i < i_limit
 			j = 0
 			j_limit = substr.size

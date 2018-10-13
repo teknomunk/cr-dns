@@ -94,16 +94,26 @@ class DNS::RR
 	property raw_data : String = ""
 
 	def self.decode_query( io : IO, packet : Bytes ) : DNS::RR
-		rr = DNS::RR.new()
-		rr.name = decode_name(io,packet)
-		rr.type = Type.new(io.read_network_short.to_i32)
-		rr.cls = Cls.new(io.read_network_short.to_i32)
+		name = decode_name(io,packet)
+		type = Type.new(io.read_network_short.to_i32)
+		cls= Cls.new(io.read_network_short.to_i32)
+
+		if type == Type::OPT
+			rr = DNS::RR::OPT.new()
+		else
+			rr = DNS::RR.new()
+		end
+		rr.cls = cls
+		rr.name = name
+		rr.type = type
 		
 		return rr
 	end
 	def self.decode( io : IO, packet : Bytes ) : DNS::RR
 		rr = decode_query(io,packet)
+
 		rr.ttl = io.read_network_long
+
 		data_length = io.read_network_short
 		if data_length != 0
 			data = io.gets(data_length)
@@ -111,14 +121,21 @@ class DNS::RR
 
 			rr.raw_data = data
 		end
+		if rr.is_a?(DNS::RR::OPT)
+			rr.decode_options()
+		end
 		return rr
 	end
 	def encode_query( io : IO )
-		puts "encode_query"
 		DNS::RR.encode_name(@name, io, io.to_slice)
+		io.write_network_short( @type.to_i32 )
+		io.write_network_short( @cls.to_i32 )
 	end
 	def encode( io : IO )
 		encode_query(io)
+		io.write_network_long( @ttl )
+		io.write_network_short( @raw_data.size )
+		io.write @raw_data.to_slice
 	end
 	def data() : String
 		case type
@@ -129,6 +146,16 @@ class DNS::RR
 		end
 	end
 	def data=( s : String )
+		case type
+			when Type::A
+				io = IO::Memory.new()
+				s.split(".")[0,4].each {|i|
+					io.write_byte i.to_u8
+				}
+				@raw_data = String.new( io.to_slice )
+			else
+				@raw_data = s
+		end
 	end
 	def inspect( io : IO )
 		io << "#<DNS::RR::"

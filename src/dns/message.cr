@@ -154,7 +154,7 @@ class DNS::Message
 		io.write_network_short( additional.size )
 
 		questions.each {|rr| rr.encode_query(io) }
-		questions.each {|rr| rr.encode(io) }
+		answers.each {|rr| rr.encode(io) }
 		authority.each {|rr| rr.encode(io) }
 		additional.each{|rr| rr.encode(io) }
 
