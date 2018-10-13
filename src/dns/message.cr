@@ -4,13 +4,17 @@ class DNS::Message
 		Query
 		Response
 	end
+	Query = Type::Query
+	Response = Type::Response
+
 	enum QueryType
-		Query
-		InverseQuery
-		Status
-		Notify
-		Update
+		Query		= 0
+		InverseQuery	= 1
+		Status		= 2
+		Notify		= 4
+		Update		= 5
 	end
+
 	enum ResponseCode
 		NoError
 		FormatError
@@ -24,6 +28,7 @@ class DNS::Message
 		NotAuth
 		NotZone
 	end
+	NoError = ResponseCode::NoError
 
 	property id : UInt16 = 0
 
@@ -125,5 +130,34 @@ class DNS::Message
 		}
 
 		return msg
+	end
+
+	def encode()
+		io = IO::Memory.new()
+
+		io.write_network_short(@id)
+		flags = 0_u16
+		flags |= 0x8000 if @query
+		flags |= ( @query_type.to_u16 << 11 )
+		flags |= 0x0400 if @authoritative
+		flags |= 0x0200 if @truncated
+		flags |= 0x0100 if @recursion_desired
+		flags |= 0x0080 if @recursion_available
+		flags |= 0x0020 if @authenticated
+		flags |= 0x0010 if @accept_non_auth
+		flags |= ( @response_code.to_u16 )
+
+		io.write_network_short( flags )
+		io.write_network_short( questions.size )
+		io.write_network_short( answers.size )
+		io.write_network_short( authority.size )
+		io.write_network_short( additional.size )
+
+		questions.each {|rr| rr.encode_query(io) }
+		questions.each {|rr| rr.encode(io) }
+		authority.each {|rr| rr.encode(io) }
+		additional.each{|rr| rr.encode(io) }
+
+		io.to_slice
 	end
 end

@@ -1,6 +1,7 @@
 
+
 class DNS::RR
-	def self.parse_name( io : IO, packets : Bytes ) : String
+	def self.decode_name( io : IO, packets : Bytes ) : String
 		parts = [] of String
 		part_size = 1
 
@@ -12,7 +13,7 @@ class DNS::RR
 				raise "Expecting two byte sequence" if byte2.nil?
 
 				offset = (byte.to_u32 & 0x3F) << 8 | byte2
-				dname = parse_name( IO::Memory.new(packets+offset), packets )
+				dname = decode_name( IO::Memory.new(packets+offset), packets )
 				parts.push(dname)
 
 				return parts.join(".")
@@ -27,4 +28,43 @@ class DNS::RR
 		
 		return parts.join(".")
 	end
+	def self.encode_name( name : String, io : IO, packet : Bytes )
+		puts "encode_name( name = #{name}, io, packet )"
+		if name == "."
+			parts = [""]
+		else
+			parts = name.split(".")
+			parts.pop() if parts[-1] == ""
+		end
+
+		puts "parts = #{parts.inspect}"
+
+		parts = parts.map {|part|
+			i = IO::Memory.new()
+			i.write_byte( part.size.to_u8 )
+			i.write part.to_slice if part.size > 0
+			i.to_slice
+		}
+
+		puts "parts = #{parts.inspect}"
+
+		i = 0
+		i_limit = parts.size
+		while i < i_limit
+			substr = Bytes.concat_slices(parts[i..-1])
+			if substr.size >= 2 && (idx=io.to_slice.substring_search(substr))
+				puts "idx=#{idx}"
+				io.write_network_short( 0xC000_u16 | idx )
+				break
+			else
+				io.write parts[i]
+			end
+			i += 1
+		end
+
+		puts "io= #{io.to_slice.inspect}"
+
+		puts parts.inspect
+	end
+
 end

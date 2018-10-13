@@ -1,0 +1,9 @@
+name: dns
+version: 0.1.0
+
+authors:
+  - teknomunk <teknomunk@protonmail.com>
+
+crystal: 0.26.1
+
+license: MIT

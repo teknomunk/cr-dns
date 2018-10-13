@@ -80,9 +80,13 @@ class DNS::RR
 		UNSPEC		= 103
 		SPF			= 99
 	end
+	A = Type::A
+	AAAA = Type::AAAA
+
 	enum Cls
 		IN = 1
 	end
+	IN = Cls::IN
 	property name : String = "."
 	property type : Type = Type::ANY
 	property cls : Cls = Cls::IN
@@ -91,7 +95,7 @@ class DNS::RR
 
 	def self.decode_query( io : IO, packet : Bytes ) : DNS::RR
 		rr = DNS::RR.new()
-		rr.name = parse_name(io,packet)
+		rr.name = decode_name(io,packet)
 		rr.type = Type.new(io.read_network_short.to_i32)
 		rr.cls = Cls.new(io.read_network_short.to_i32)
 		
@@ -108,6 +112,13 @@ class DNS::RR
 			rr.raw_data = data
 		end
 		return rr
+	end
+	def encode_query( io : IO )
+		puts "encode_query"
+		DNS::RR.encode_name(@name, io, io.to_slice)
+	end
+	def encode( io : IO )
+		encode_query(io)
 	end
 	def data() : String
 		case type
