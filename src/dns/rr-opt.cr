@@ -80,10 +80,8 @@ class DNS::RR::OPT < DNS::RR
 		#return
 		
 		while io.pos <= ( io.size - 4 )
-			puts "io.pos=#{io.pos}, io.size=#{io.size}"
 			opt = DNS::Option.new
 			opt.option_code = DNS::Option::Code.new(io.read_network_short.to_i32)
-			puts "opt.option_code = #{opt.option_code}"
 			size = io.read_network_short()
 			data = Bytes.new(size)
 			if !(io.read_fully?(data)).nil?

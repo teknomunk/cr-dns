@@ -75,8 +75,8 @@ class DNS::Server
 
 		def get_request() : Request?
 			size,addr = @socket.receive(@buffer)
-			puts "Received request:"
-			puts @buffer[0,size].inspect
+			#puts "Received request:"
+			#puts @buffer[0,size].inspect
 
 			# Create a new request
 			req = Request.new(addr)
@@ -88,8 +88,8 @@ class DNS::Server
 		def send_response( req : Request )
 			if !(ra=req.remote_address).nil?
 				response = req.message.encode()
-				puts "sending response: #{response}"
-				puts req.message.inspect
+				#puts "sending response: #{response}"
+				#puts req.message.inspect
 				@socket.send( response, ra )
 			else
 				puts "Unable to send request, no remote address #{req.remote_address}"
@@ -120,7 +120,6 @@ class DNS::Server
 			@listeners.each {|l|
 				while !l.request_channel.empty?
 					req = l.request_channel.receive
-					puts "Processing request #{req.message}"
 					process_request(req)
 					l.response_channel.send(req)
 				end
