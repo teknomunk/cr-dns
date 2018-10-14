@@ -80,6 +80,7 @@ class DNS::RR
 		UNSPEC		= 103
 		SPF			= 99
 	end
+	ANY = Type::ANY
 	A = Type::A
 	AAAA = Type::AAAA
 	TXT = Type::TXT

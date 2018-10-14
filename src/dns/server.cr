@@ -2,7 +2,7 @@ require "socket"
 
 class DNS::Server
 	class Request
-		property message : DNS::Message = DNS::Message.new()
+		property message : Message = Message.new()
 		property remote_address : Socket::IPAddress?
 		property socket : Socket?
 
@@ -32,7 +32,7 @@ class DNS::Server
 						# Report server error
 						puts "Caught error: #{e}"
 						if req
-							req.message.response_code = DNS::Message::ResponseCode::ServerFailure
+							req.message.response_code = Message::ResponseCode::ServerFailure
 							send_response(req)
 						end
 					end
@@ -80,7 +80,7 @@ class DNS::Server
 
 			# Create a new request
 			req = Request.new(addr)
-			req.message = DNS::Message.decode(@buffer[0,size])
+			req.message = Message.decode(@buffer[0,size])
 			req.remote_address = addr
 
 			return req
@@ -98,6 +98,7 @@ class DNS::Server
 	end
 
 	@listeners = [] of Listener
+	@routes = [] of Route
 
 	def initialize( udp_addr = "localhost", udp_port = 56, tcp_addr = "localhost", tcp_port = 53 )
 		# Setup UDP listener
@@ -129,11 +130,15 @@ class DNS::Server
 	end
 
 	def process_request( req : Request )
-		rr = DNS::RR.new(DNS::RR::A)
-		rr.name = req.message.questions[0].name
-		rr.data = "127.0.0.1"
-		req.message.answers.push(rr)
-		puts req.inspect
+		req.message.questions.each {|q|
+			@routes.find {|route| route.try_dispatch(req,q) }
+		}
+	end
+
+	def query( domain : String, type : RR::Type = RR::ANY, cls : RR::Cls = RR::IN, &block : Request,RR -> _ )
+		@routes.push( Route.new( domain, type, cls, &block ) )
 	end
 end
+
+require "./server/*"
 
