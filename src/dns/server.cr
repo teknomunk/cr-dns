@@ -98,19 +98,25 @@ class DNS::Server
 	end
 
 	@listeners = [] of Listener
-	@routes = [] of Route
 
 	def initialize( udp_addr = "localhost", udp_port = 56, tcp_addr = "localhost", tcp_port = 53 )
+		listen_udp( udp_addr, udp_port )
+		listen_tcp( tcp_addr, tcp_port )
+	end
+	def listen_udp( addr, port )
 		# Setup UDP listener
 		l = UDPListener.new(sock=UDPSocket.new)
-		sock.bind( udp_addr, udp_port )
+		sock.bind( addr, port )
 		@listeners.push(l)
-
+	end
+	def listen_tcp( addr, port )
 		# Setup TCP listener
-		l = TCPListener.new(TCPServer.new( tcp_addr, tcp_port ))
+		l = TCPListener.new(TCPServer.new( addr, port ))
 		@listeners.push(l)
 	end
 	def run()
+		raise "DNS::Server requires at least one listener" if @listeners.size == 0
+
 		# Startup fibers for each listener
 		@listeners.each {|l| l.run }
 
@@ -129,14 +135,26 @@ class DNS::Server
 	end
 
 	def process_request( req : Request )
-		req.message.questions.each {|q|
-			@routes.find {|route| route.try_dispatch(req,q) }
-		}
+		{% begin %}
+		case req.message.query_type
+			{% for type,code in Message::QUERY_TYPES %}
+			when Message::{{code.id}}
+				req.message.questions.each {|q|
+					@{{type.id}}_routes.find {|route| route.try_dispatch(req,q) }
+				}
+			{% end %}
+			else
+				req.message.response_code = Message::ResponseCode::NotImplemented
+		end
+		{% end %}
 	end
 
-	def query( domain : String, type : RR::Type = RR::ANY, cls : RR::Cls = RR::IN, &block : Request,RR -> _ )
-		@routes.push( Route.new( domain, type, cls, &block ) )
+	{% for type,code in Message::QUERY_TYPES %}
+	@{{type.id}}_routes = [] of Route
+	def {{type.id}}( domain : String, type : RR::Type = RR::ANY, cls : RR::Cls = RR::IN, &block : Request,RR -> _ )
+		@{{type.id}}_routes.push( Route.new( domain, type, cls, &block ) )
 	end
+	{% end %}
 end
 
 require "./server/*"

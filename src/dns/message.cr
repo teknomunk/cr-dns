@@ -14,6 +14,13 @@ class DNS::Message
 		Notify		= 4
 		Update		= 5
 	end
+	QUERY_TYPES = { 
+		"query" => QueryType::Query,
+		"inverse_query" => QueryType::InverseQuery,
+		"status" => QueryType::Status,
+		"notify" => QueryType::Notify,
+		"update" => QueryType::Update
+	}
 
 	enum ResponseCode
 		NoError
