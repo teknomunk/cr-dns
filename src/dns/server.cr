@@ -19,11 +19,24 @@ class DNS::Server
 		abstract def send_response( req : Request )
 
 		def run()
-			loop {
-				# Get the request
-				if !(req=get_request()).nil?
-					# Send to the main thread to process
-					@request_channel.send(req)
+			puts "Starting listener loop"
+			spawn do
+				loop {
+					begin
+						# Get the request
+						if !(req=get_request()).nil?
+							# Send to the main thread to process
+							@request_channel.send(req)
+						end
+					rescue e
+						# Report server error
+						puts "Caught error: #{e}"
+						if req
+							req.message.response_code = DNS::Message::ResponseCode::ServerFailure
+							send_response(req)
+						end
+					end
+
 
 					# Send any responses that are ready
 					while !@response_channel.empty?
@@ -31,8 +44,8 @@ class DNS::Server
 
 						send_response( res )
 					end
-				end
-			}
+				}
+			end
 		end
 	end
 
@@ -64,6 +77,8 @@ class DNS::Server
 
 		def get_request() : Request?
 			size,addr = @socket.receive(@buffer)
+			puts "Received request:"
+			puts @buffer[0,size].inspect
 
 			# Create a new request
 			req = Request.new(addr)
@@ -74,7 +89,10 @@ class DNS::Server
 		end
 		def send_response( req : Request )
 			if !(ra=req.remote_address).nil?
+				puts "sending response"
 				@socket.send( req.message.encode(), ra )
+			else
+				puts "Unable to send request, no remote address #{req.remote_address}"
 			end
 		end
 	end
@@ -93,21 +111,20 @@ class DNS::Server
 	end
 	def run()
 		# Startup fibers for each listener
-		@listeners.each {|l|
-			spawn do
-				l.run
-			end
-		}
+		@listeners.each {|l| l.run }
 
 		# event processing loop
+		puts "Entering event processing loop"
 		loop do
 			@listeners.each {|l|
 				while !l.request_channel.empty?
 					req = l.request_channel.receive
+					puts "Processing request #{req.message}"
 					process_request(req)
 					l.response_channel.send(req)
 				end
 			}
+			sleep 0.1
 		end
 	end
 

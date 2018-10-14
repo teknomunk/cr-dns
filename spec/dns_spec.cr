@@ -74,5 +74,4 @@ describe DNS do
 			)
 		end
 	end
-
 end

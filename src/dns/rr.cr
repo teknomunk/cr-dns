@@ -91,7 +91,7 @@ class DNS::RR
 	property type : Type = Type::ANY
 	property cls : Cls = Cls::IN
 	property ttl : UInt32 = 0
-	property raw_data : String = ""
+	property raw_data : Bytes = Bytes.new(0)
 
 	def self.decode_query( io : IO, packet : Bytes ) : DNS::RR
 		name = decode_name(io,packet)
@@ -116,7 +116,10 @@ class DNS::RR
 
 		data_length = io.read_network_short
 		if data_length != 0
-			data = io.gets(data_length)
+			data = Bytes.new(data_length)
+			io.read data
+			#data = io.gets(data_length)
+			puts "data_length = #{data_length}, data=#{data.inspect}"
 			raise "Expecting #{data_length} bytes" if data.nil?
 
 			rr.raw_data = data
@@ -140,9 +143,9 @@ class DNS::RR
 	def data() : String
 		case type
 			when Type::A
-				@raw_data.bytes.map {|s| "%d" % s }.join(".")
+				@raw_data.map {|s| "%d" % s }.join(".")
 			else
-				@raw_data
+				@raw_data.inspect
 		end
 	end
 	def data=( s : String )
@@ -152,9 +155,11 @@ class DNS::RR
 				s.split(".")[0,4].each {|i|
 					io.write_byte i.to_u8
 				}
-				@raw_data = String.new( io.to_slice )
+				@raw_data = io.to_slice
 			else
-				@raw_data = s
+				io = IO::Memory.new
+				io.puts s
+				@raw_data = io.to_slice
 		end
 	end
 	def inspect( io : IO )
