@@ -36,14 +36,12 @@ class DNS::Server
 							send_response(req)
 						end
 					end
-
-
-					# Send any responses that are ready
-					while !@response_channel.empty?
-						res = @request_channel.receive
-
-						send_response( res )
-					end
+				}
+			end
+			spawn do
+				loop {
+					res = @response_channel.receive
+					send_response(res)
 				}
 			end
 		end
@@ -89,8 +87,10 @@ class DNS::Server
 		end
 		def send_response( req : Request )
 			if !(ra=req.remote_address).nil?
-				puts "sending response"
-				@socket.send( req.message.encode(), ra )
+				response = req.message.encode()
+				puts "sending response: #{response}"
+				puts req.message.inspect
+				@socket.send( response, ra )
 			else
 				puts "Unable to send request, no remote address #{req.remote_address}"
 			end
@@ -129,6 +129,10 @@ class DNS::Server
 	end
 
 	def process_request( req : Request )
+		rr = DNS::RR.new(DNS::RR::A)
+		rr.name = req.message.questions[0].name
+		rr.data = "127.0.0.1"
+		req.message.answers.push(rr)
 		puts req.inspect
 	end
 end

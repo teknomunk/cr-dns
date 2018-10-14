@@ -82,6 +82,7 @@ class DNS::RR
 	end
 	A = Type::A
 	AAAA = Type::AAAA
+	TXT = Type::TXT
 
 	enum Cls
 		IN = 1
@@ -92,6 +93,11 @@ class DNS::RR
 	property cls : Cls = Cls::IN
 	property ttl : UInt32 = 0
 	property raw_data : Bytes = Bytes.new(0)
+
+	def initialize()
+	end
+	def initialize( @type : Type, @cls : Cls = Cls::IN )
+	end
 
 	def self.decode_query( io : IO, packet : Bytes ) : DNS::RR
 		name = decode_name(io,packet)
@@ -118,8 +124,6 @@ class DNS::RR
 		if data_length != 0
 			data = Bytes.new(data_length)
 			io.read data
-			#data = io.gets(data_length)
-			puts "data_length = #{data_length}, data=#{data.inspect}"
 			raise "Expecting #{data_length} bytes" if data.nil?
 
 			rr.raw_data = data
