@@ -105,11 +105,12 @@ class DNS::RR
 		type = Type.new(io.read_network_short.to_i32)
 		cls= Cls.new(io.read_network_short.to_i32)
 
-		if type == Type::OPT
-			rr = DNS::RR::OPT.new()
-		else
-			rr = DNS::RR.new()
+		# Create class based on resource record type
+		case type
+			when Type::OPT;	rr = DNS::RR::OPT.new()
+			else;			rr = DNS::RR.new()
 		end
+
 		rr.cls = cls
 		rr.name = name
 		rr.type = type
@@ -129,10 +130,10 @@ class DNS::RR
 
 			rr.raw_data = data
 		end
-		if rr.is_a?(DNS::RR::OPT)
-			rr.decode_options()
-		end
+		rr.finish_decode()
 		return rr
+	end
+	def finish_decode()
 	end
 	def encode_query( io : IO )
 		DNS::RR.encode_name(@name, io, io.to_slice)
@@ -179,3 +180,5 @@ class DNS::RR
 		io << ">"
 	end
 end
+
+require "./rr/*"

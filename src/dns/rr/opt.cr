@@ -70,15 +70,12 @@ class DNS::RR::OPT < DNS::RR
 		@raw_data = io.to_slice
 	end
 
-	def decode_options()
+	def finish_decode()
 		flags = @ttl & 0xFFFF
 		return if @raw_data.size == 0
 
 		io = IO::Memory.new(@raw_data.to_slice)
 
-
-		#return
-		
 		while io.pos <= ( io.size - 4 )
 			opt = DNS::Option.new
 			opt.option_code = DNS::Option::Code.new(io.read_network_short.to_i32)
