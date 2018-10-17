@@ -5,8 +5,8 @@ describe DNS do
 		describe "#run" do
 			spawn do
 				server = DNS::Server.new( udp_port: 8000, tcp_port: 8000)
-				server.query("example.com.", DNS::RR::A) {|req,q|
-					rr = DNS::RR.new(DNS::RR::A)
+				server.query("example.com.", DNS::RR::Type::A) {|req,q|
+					rr = DNS::RR::A.new()
 					rr.name = req.message.questions[0].name
 					rr.data = "127.0.0.1"
 					req.message.answers.push(rr)

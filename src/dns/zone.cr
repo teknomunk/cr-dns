@@ -10,80 +10,65 @@ class DNS::Zone
 	@ttl = 0
 	property records : Array(RR) = [] of RR
 
-	macro update_optional(list)
-		{% for item in list %}
-			{{item.id}} = new_{{item.id}} if new_{{item.id}} != ""
-		{% end %}
+	include DNS::RR::CommonRegex
+
+	def self.time( str : String )
+		case str
+			when /([0-9]+)[Ww]/
+				$1.to_u32 * 3600*24*7
+			when /([0-9]+)[Dd]/
+				$1.to_u32 * 3600*24
+			when /([0-9]+)[Hh]/
+				$1.to_u32 * 3600
+			when /([0-9]+)[Mm]/
+				$1.to_u32 * 60
+			else
+				$1.to_u32
+		end
 	end
 
-	DNAME="(@|[a-z\-0-9\.]+)"
-	WS="[ \t]+"
-	TTL="([0-9]+[WDMwdm])?"
-	CLS="(IN|)"
-	IPV4_ADDR="([0-9\.]+)"
-	IPV6_ADDR="([0-9A-Fa-f\.:]+)"
+	class Context
+		property ttl : UInt32 = 0
+		@name : String = ""
+		@cls : String = ""
+		property origin : String = "."
+
+		def name()
+			( @name == "@" ? @origin : @name )
+		end
+		def cls()
+			#case @cls
+			#when "IN"
+				DNS::RR::Cls::IN
+			#end
+		end
+
+		def update_optional( md : Regex::MatchData )
+			puts md.inspect
+			@ttl		= DNS::Zone.time(md[2]) if md[2] != ""
+			@name 	= md[2] if md[2] != ""
+			@cls		= md[3] if md[3] != ""
+		end
+	end
 
 	private def do_initialize( io : IO)
-		ttl = 0
-		cls = ""
-		name = ""
+		ctx = Context.new()
 		while !(line=io.gets('\n')).nil?
 			line = line.gsub(/[ \t]*;.*$/,"")
+			{% begin %}
 			case line
 				when /^\$ORIGIN #{DNAME}$/
-					@origin = $1
-				when /^#{DNAME}?#{WS}#{TTL}#{WS}#{CLS}#{WS}SOA#{WS}#{DNAME}#{WS}(.*)$/
-					new_name,new_ttl,new_cls = $1,$2,$3
-					dname = $4
-					rdata = $5
-
-					update_optional [name, ttl, cls]
-
-					rr = DNS::RR.new()
-					rr.type = DNS::RR::Type::SOA
-					rr.name = ( name == "@" ? @origin : name )
-					rr.raw_data = rdata.to_slice
-
-					@records.push(rr)
-				when /^#{DNAME}?#{WS}#{TTL}#{WS}#{CLS}#{WS}A#{WS}#{IPV4_ADDR}$/
-					new_name,new_ttl,new_cls = $1,$2,$3
-					addr = $4
-
-					update_optional [name, ttl, cls]
-
-					rr = DNS::RR.new()
-					rr.type = DNS::RR::Type::A
-					rr.name = ( name == "@" ? @origin : name )
-					rr.data = addr
-
-					@records.push(rr)
-				when /^#{DNAME}?#{WS}#{TTL}#{WS}#{CLS}#{WS}AAAA#{WS}#{IPV6_ADDR}$/
-					new_name,new_ttl,new_cls = $1,$2,$3
-					addr = $4
-
-					update_optional [name, ttl, cls]
-
-					rr = DNS::RR.new()
-					rr.type = DNS::RR::Type::AAAA
-					rr.name = ( name == "@" ? @origin : name )
-					rr.data = addr
-
-					@records.push(rr)
-				when /^#{DNAME}?#{WS}#{TTL}#{WS}#{CLS}#{WS}NS#{WS}#{DNAME}$/
-					new_name,new_ttl,new_cls = $1,$2,$3
-					nameserver = $4
-
-					update_optional [name, ttl, cls]
-
-					rr = DNS::RR.new()
-					rr.type = DNS::RR::Type::NS
-					rr.name = ( name == "@" ? @origin : name )
-					rr.data = nameserver
-
-					@records.push(rr)
+					ctx.origin = $1
+				{% for type in %w(SOA A AAAA NS) %}
+				when DNS::RR::{{type.id}}::REGEX
+					ctx.update_optional(md=$~)
+					@records.push( DNS::RR::{{type.id}}.decode_zone( ctx, md ) )
+				{% end %}
 				else
 					puts "Unhandled line #{line}"
 			end
+			{% end %}
 		end
 	end
 end
+

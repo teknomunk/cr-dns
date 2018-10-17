@@ -80,9 +80,17 @@ class DNS::RR
 		UNSPEC		= 103
 		SPF			= 99
 	end
+	module CommonRegex
+		DNAME="(@|[a-z\-0-9\.]+)"
+		WS="[ \t]+"
+		TIME="([0-9]+[WDMwdm])?"
+		CLS="(IN|)"
+		IPV4_ADDR="([0-9\.]+)"
+		IPV6_ADDR="([0-9A-Fa-f\.:]+)"
+	end
 	ANY = Type::ANY
-	A = Type::A
-	AAAA = Type::AAAA
+#	A = Type::A
+#	AAAA = Type::AAAA
 	TXT = Type::TXT
 
 	enum Cls

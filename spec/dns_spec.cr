@@ -21,10 +21,10 @@ describe DNS do
 				msg.response_code.should eq(DNS::Message::NoError)
 				msg.authenticated.should eq(false)
 
-				msg.questions[0].type.should eq(DNS::RR::A)
+				msg.questions[0].type.should eq(DNS::RR::Type::A)
 				msg.questions[0].name.should eq("media-server.polaris.lan.")
 
-				msg.answers[0].type.should eq(DNS::RR::A)
+				msg.answers[0].type.should eq(DNS::RR::Type::A)
 				msg.answers[0].name.should eq("media-server.polaris.lan.")
 				msg.answers[0].data.should eq("192.168.20.9")
 				msg.answers[0].ttl.should eq(10)
@@ -50,12 +50,12 @@ describe DNS do
 				msg.authenticated = false
 
 				rr = DNS::RR.new
-				rr.type = DNS::RR::A
+				rr.type = DNS::RR::Type::A
 				rr.name = "media-server.polaris.lan."
 				msg.questions.push(rr)
 
 				rr = DNS::RR.new
-				rr.type = DNS::RR::A
+				rr.type = DNS::RR::Type::A
 				rr.name = "media-server.polaris.lan."
 				rr.data = "192.168.20.9"
 				rr.ttl = 10

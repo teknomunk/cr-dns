@@ -12,6 +12,10 @@ describe DNS do
 			zone = DNS::Zone.new(io)
 			puts zone.records.inspect
 			zone.records.size.should eq(4)
+			zone.records[0].type.should eq(DNS::RR::Type::SOA)
+			zone.records[1].type.should eq(DNS::RR::Type::NS)
+			zone.records[2].type.should eq(DNS::RR::Type::A)
+			zone.records[3].type.should eq(DNS::RR::Type::AAAA)
 		end
 	end
 end
