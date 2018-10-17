@@ -10,7 +10,7 @@ class DNS::RR::SOA < DNS::RR
 		rr = self.new()
 		
 		parts = md[5].split(/[ \t]/)
-		rr.mname = md[4]
+		rr.mname = ctx.translate_dname(md[4])
 		rr.rname = parts[0]
 		rr.serial = parts[1].to_u32
 		rr.refresh = DNS::Zone.time(parts[2])

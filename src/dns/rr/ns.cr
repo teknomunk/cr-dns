@@ -9,7 +9,7 @@ class DNS::RR::NS < DNS::RR
 	def self.decode_zone( ctx, md : Regex::MatchData )
 		rr = self.new()
 		
-		rr.name_server = md[4]
+		rr.name_server = ctx.translate_dname(md[4])
 		rr.ttl = ctx.ttl
 		rr.cls = ctx.cls
 		rr.name = ctx.name

@@ -12,11 +12,11 @@ class DNS::RR::AAAA < DNS::RR
 		rr.name = ctx.name
 		rr.ttl = ctx.ttl
 		rr.cls = ctx.cls
-		rr.ip_addr = md[4]
+		rr.ip_address = md[4]
 
 		return rr
 	end
 
-	property ip_addr : String = "::1"
+	property ip_address : String = "::1"
 end
 

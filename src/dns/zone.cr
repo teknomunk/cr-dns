@@ -34,7 +34,17 @@ class DNS::Zone
 		property origin : String = "."
 
 		def name()
-			( @name == "@" ? @origin : @name )
+			translate_dname(@name)
+		end
+		def translate_dname(name)
+			case name
+			when "@"
+				@origin
+			when /\.$/
+				name
+			else
+				"#{name}.#{@origin}"
+			end
 		end
 		def cls()
 			#case @cls
@@ -44,9 +54,8 @@ class DNS::Zone
 		end
 
 		def update_optional( md : Regex::MatchData )
-			puts md.inspect
+			@name 	= md[1] if md[1] != ""
 			@ttl		= DNS::Zone.time(md[2]) if md[2] != ""
-			@name 	= md[2] if md[2] != ""
 			@cls		= md[3] if md[3] != ""
 		end
 	end

@@ -9,7 +9,7 @@ class DNS::RR::A < DNS::RR
 	def self.decode_zone( ctx, md : Regex::MatchData )
 		rr = self.new()
 	
-		rr.ip_addr = md[4]
+		rr.ip_address = md[4]
 
 		rr.name = ctx.name
 		rr.ttl = ctx.ttl
@@ -18,6 +18,6 @@ class DNS::RR::A < DNS::RR
 		return rr
 	end
 
-	property ip_addr : String = "0.0.0.0"
+	property ip_address : String = "0.0.0.0"
 end
 
