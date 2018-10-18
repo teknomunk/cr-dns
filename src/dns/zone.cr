@@ -10,7 +10,7 @@ class DNS::Zone
 	@ttl = 0
 	property records : Array(RR) = [] of RR
 
-	include DNS::RR::CommonRegex
+	include RR::CommonRegex
 
 	def self.time( str : String )
 		case str
@@ -23,7 +23,7 @@ class DNS::Zone
 			when /([0-9]+)[Mm]/
 				$1.to_u32 * 60
 			else
-				$1.to_u32
+				str.to_u32
 		end
 	end
 
@@ -41,22 +41,29 @@ class DNS::Zone
 			when "@"
 				@origin
 			when /\.$/
-				name
+				name.downcase
 			else
-				"#{name}.#{@origin}"
+				"#{name.downcase}.#{@origin}"
 			end
 		end
 		def cls()
 			#case @cls
 			#when "IN"
-				DNS::RR::Cls::IN
+				RR::Cls::IN
 			#end
 		end
 
 		def update_optional( md : Regex::MatchData )
-			@name 	= md[1] if md[1] != ""
-			@ttl		= DNS::Zone.time(md[2]) if md[2] != ""
-			@cls		= md[3] if md[3] != ""
+			puts md.inspect
+			if !(md1=md[1]?).nil? && md1 != ""
+				@name 	= md1
+			end
+			if !(md2=md[2]?).nil? && md2 != ""
+				@ttl		= Zone.time(md2)
+			end
+			if !(md3=md[3]?).nil? && md3 != ""
+				@cls		= md3
+			end
 		end
 	end
 
@@ -64,18 +71,42 @@ class DNS::Zone
 		ctx = Context.new()
 		while !(line=io.gets('\n')).nil?
 			line = line.gsub(/[ \t]*;.*$/,"")
-			{% begin %}
-			case line
-				when /^\$ORIGIN #{DNAME}$/
-					ctx.origin = $1
-				{% for type in %w(SOA A AAAA NS) %}
-				when DNS::RR::{{type.id}}::REGEX
-					ctx.update_optional(md=$~)
-					@records.push( DNS::RR::{{type.id}}.decode_zone( ctx, md ) )
-				{% end %}
-				else
-					puts "Unhandled line #{line}"
+
+			# If there is a '(', continue until we get a ')'
+			if /\([^"]*$/ =~ line
+				# Remove the matching '('
+				line = line.gsub(/\([^"]*$/) {|md| md.gsub(/^\(/,"") }
+
+				while !(line2=io.gets('\n')).nil?
+					line2 = line2.gsub(/[ \t]*;.*$/,"").gsub(/[ \t]*$/,"").gsub("\n","")
+
+					if /\)[ \t]*$/ =~ line2
+						line2 = line2.gsub(/\)[^"]*$/) {|md| md.gsub(/^\)/,"") }
+						line += line2
+						break
+					end
+
+					line += line2
+				end	
 			end
+			line = line.gsub(/[ \t]*$/,"").gsub("\n","")
+			{% begin %}
+				case line
+					when /^\$ORIGIN #{DNAME}$/
+						ctx.origin = $1.downcase
+					{% for type in RR::TYPES %}
+						when RR::{{type.id}}::REGEX
+							ctx.update_optional(md=$~)
+							@records.push( RR::{{type.id}}.decode_zone( ctx, md ) )
+					{% end %}
+					when ""
+					else
+						puts "Candidates: "
+						{% for type in RR::TYPES %}
+							puts "\t/#{RR::{{type.id}}::REGEX.source.inspect[1..-2]}/"
+						{% end %}
+						raise "Unhandled line #{line.inspect}"
+				end
 			{% end %}
 		end
 	end

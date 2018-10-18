@@ -80,23 +80,24 @@ class DNS::RR
 		UNSPEC		= 103
 		SPF			= 99
 	end
+	TYPES = %w(SOA A AAAA NS MX)
+
 	module CommonRegex
-		DNAME="(@|[a-z\-0-9\.]+)"
+		DNAME="(@|[A-Za-z\-0-9\.]+)"
 		WS="[ \t]+"
 		TIME="([0-9]+[WDMwdm])?"
 		CLS="(IN|)"
 		IPV4_ADDR="([0-9\.]+)"
 		IPV6_ADDR="([0-9A-Fa-f\.:]+)"
+		ZONE_OPTIONAL="(?:#{DNAME}?#{WS})(?:#{TIME}#{WS})?#{CLS}?#{WS}"
+		#ZONE_OPTIONAL="(.*)"
 	end
-	ANY = Type::ANY
-#	A = Type::A
-#	AAAA = Type::AAAA
-	TXT = Type::TXT
 
 	enum Cls
 		IN = 1
 	end
 	IN = Cls::IN
+
 	property name : String = "."
 	property type : Type = Type::ANY
 	property cls : Cls = Cls::IN
@@ -114,10 +115,17 @@ class DNS::RR
 		cls= Cls.new(io.read_network_short.to_i32)
 
 		# Create class based on resource record type
+		rr : DNS::RR
+		{% begin %}
 		case type
-			when Type::OPT;	rr = DNS::RR::OPT.new()
-			else;			rr = DNS::RR.new()
+			{% for type in TYPES %}
+				when Type::{{type.id}}
+					rr = DNS::RR::{{type.id}}.new()
+			{% end %}
+			else
+				rr = DNS::RR.new()
 		end
+		{% end %}
 
 		rr.cls = cls
 		rr.name = name

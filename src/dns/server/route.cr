@@ -16,7 +16,7 @@ class DNS::Server::Route
 		end
 	end
 	def try_dispatch( req : Request, q : RR )
-			return false if q.type != RR::ANY && @type != RR::ANY && q.type != @type
+			return false if q.type != RR::Type::ANY && @type != RR::Type::ANY && q.type != @type
 			return false if (idx=q.name.index(@domain)).nil?
 			return false if idx != q.name.size - @domain.size
 			return false if q.cls != @cls

@@ -4,7 +4,7 @@ class DNS::RR::A < DNS::RR
 	end
 
 	include DNS::RR::CommonRegex
-	REGEX = /^#{DNAME}?#{WS}#{TIME}#{WS}#{CLS}#{WS}A#{WS}#{IPV4_ADDR}$/
+	REGEX = /^#{ZONE_OPTIONAL}A#{WS}#{IPV4_ADDR}$/
 
 	def self.decode_zone( ctx, md : Regex::MatchData )
 		rr = self.new()

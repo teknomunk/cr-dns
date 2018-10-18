@@ -4,12 +4,12 @@ class DNS::RR::SOA < DNS::RR
 	end
 
 	include DNS::RR::CommonRegex
-	REGEX = /^#{DNAME}?#{WS}#{TIME}#{WS}#{CLS}#{WS}SOA#{WS}#{DNAME}#{WS}(.*)$/
+	REGEX = /^#{ZONE_OPTIONAL}SOA#{WS}#{DNAME}#{WS}(.*)$/
 
 	def self.decode_zone( ctx, md : Regex::MatchData )
 		rr = self.new()
 		
-		parts = md[5].split(/[ \t]/)
+		parts = md[5].split(/[ \t]+/)
 		rr.mname = ctx.translate_dname(md[4])
 		rr.rname = parts[0]
 		rr.serial = parts[1].to_u32
