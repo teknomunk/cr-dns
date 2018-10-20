@@ -54,7 +54,6 @@ class DNS::Zone
 		end
 
 		def update_optional( md : Regex::MatchData )
-			puts md.inspect
 			if !(md1=md[1]?).nil? && md1 != ""
 				@name 	= md1
 			end

@@ -28,7 +28,8 @@ VAXA    A       10.2.0.27
 ")
 				zone = DNS::Zone.new(io)
 				zone.records.size.should eq(11)
-			end
+			end # it "Loads the example zone file from RFC 1035, section 5.3"
+
 			it "Loads a zone file sample from Wikipedia" do
 				io=IO::Memory.new("$ORIGIN localhost.\n"+
 							   "@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment\n"+
@@ -78,7 +79,22 @@ VAXA    A       10.2.0.27
 				else
 					raise "Error"
 				end
-			end
+			end # it "Loads a zone file sample from Wikipedia"
+		end # describe "#initialize" do
+
+		it "Can be used with a DNS server" do
+			srv = DNS::Server.new()
+
+			io=IO::Memory.new("$ORIGIN localhost.\n"+
+						   "@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment\n"+
+						   "@  1D  IN  NS    @\n"+
+						   "@  1D  IN  A     127.0.0.1\n"+
+						   "@  1D  IN  AAAA  ::1\n" )
+
+			
+			zone = DNS::Zone.new(io)
+
+			srv.add_zone( zone )
 		end
-	end
-end
+	end # describe DNS::Zone do
+end # describe DNS do

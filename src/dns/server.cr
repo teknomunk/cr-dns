@@ -66,7 +66,8 @@ class DNS::Server
 				sock.send( req.message.encode() )
 			end
 		end
-	end
+	end # end TCPListener < Listener
+
 	class UDPListener < Listener
 		@socket : UDPSocket
 		@buffer = Bytes.new(4096)
@@ -95,13 +96,20 @@ class DNS::Server
 				puts "Unable to send request, no remote address #{req.remote_address}"
 			end
 		end
-	end
+	end # class UDPListener < Listener
+
 
 	@listeners = [] of Listener
+	getter channel_listener = ChannelListener.new()
 
+	def initialize()
+		@listeners.push(@channel_listener)
+	end
 	def initialize( udp_addr = "localhost", udp_port = 56, tcp_addr = "localhost", tcp_port = 53 )
 		listen_udp( udp_addr, udp_port )
 		listen_tcp( tcp_addr, tcp_port )
+
+		@listeners.push(@channel_listener)
 	end
 	def listen_udp( addr, port )
 		# Setup UDP listener
@@ -114,6 +122,8 @@ class DNS::Server
 		l = TCPListener.new(TCPServer.new( addr, port ))
 		@listeners.push(l)
 	end
+
+
 	def run()
 		raise "DNS::Server requires at least one listener" if @listeners.size == 0
 
@@ -155,6 +165,9 @@ class DNS::Server
 		@{{type.id}}_routes.push( Route.new( domain, type, cls, &block ) )
 	end
 	{% end %}
+
+	def add_zone( zone : DNS::Zone )
+	end
 end
 
 require "./server/*"
