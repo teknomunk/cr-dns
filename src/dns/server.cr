@@ -105,12 +105,6 @@ class DNS::Server
 	def initialize()
 		@listeners.push(@channel_listener)
 	end
-	def initialize( udp_addr = "localhost", udp_port = 56, tcp_addr = "localhost", tcp_port = 53 )
-		listen_udp( udp_addr, udp_port )
-		listen_tcp( tcp_addr, tcp_port )
-
-		@listeners.push(@channel_listener)
-	end
 	def listen_udp( addr, port )
 		# Setup UDP listener
 		l = UDPListener.new(sock=UDPSocket.new)

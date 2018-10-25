@@ -57,6 +57,23 @@ class DNS::Message
 	def self.decode( packet : Bytes )
 		decode( IO::Memory.new(packet), packet )
 	end
+	def self.simple_query( type : String, name : String )
+		{% begin %}
+			case type
+				{% for t in RR::TYPES %}
+					when "{{t.id}}"
+						rr = DNS::RR::{{t.id}}.new()
+						rr.name = name
+						rr.cls = RR::Cls::IN
+						q = self.new()
+						q.questions.push(rr)
+						return q
+				{% end %}
+				else
+					return nil
+			end
+		{% end %}
+	end
 
 	def self.decode( io : IO, packet : Bytes )
 		msg = DNS::Message.new
