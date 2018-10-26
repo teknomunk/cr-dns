@@ -25,6 +25,12 @@ class DNS::RR::SOA < DNS::RR
 		return rr
 	end
 
+	def raw_data()
+		return Bytes.new(1,0)
+	end
+	def raw_data=( b : Bytes )
+	end
+
 	property mname : String = ""
 	property rname : String = ""
 	property serial : UInt32 = 0

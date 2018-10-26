@@ -1,4 +1,4 @@
-class DNS::RR
+abstract class DNS::RR
 	enum Type
 		# Pseudo record types
 		ANY			= 255
@@ -102,15 +102,12 @@ class DNS::RR
 	property type : Type = Type::ANY
 	property cls : Cls = Cls::IN
 	property ttl : UInt32 = 0
-	property raw_data : Bytes = Bytes.new(0)
 
-	def initialize()
-	end
-	def initialize( @type : Type, @cls : Cls = Cls::IN )
-	end
+	abstract def raw_data=( data : Bytes )
+	abstract def raw_data() : Bytes
 
 	def self.decode_query( io : IO, packet : Bytes ) : DNS::RR
-		name = decode_name(io,packet)
+		name = DNS.decode_name(io,packet)
 		type = Type.new(io.read_network_short.to_i32)
 		cls= Cls.new(io.read_network_short.to_i32)
 
@@ -123,7 +120,7 @@ class DNS::RR
 					rr = DNS::RR::{{type.id}}.new()
 			{% end %}
 			else
-				rr = DNS::RR.new()
+				raise "Unsupported type #{cls}:#{type}"
 		end
 		{% end %}
 
@@ -152,37 +149,18 @@ class DNS::RR
 	def finish_decode()
 	end
 	def encode_query( io : IO )
-		DNS::RR.encode_name(@name, io, io.to_slice)
+		DNS.encode_name(@name, io, io.to_slice)
 		io.write_network_short( @type.to_i32 )
 		io.write_network_short( @cls.to_i32 )
 	end
 	def encode( io : IO )
+		rd = raw_data
+		raise "Error encoding data" if rd.nil?
+
 		encode_query(io)
 		io.write_network_long( @ttl )
-		io.write_network_short( @raw_data.size )
-		io.write @raw_data.to_slice
-	end
-	def data() : String
-		case type
-			when Type::A
-				@raw_data.map {|s| "%d" % s }.join(".")
-			else
-				@raw_data.inspect
-		end
-	end
-	def data=( s : String )
-		case type
-			when Type::A
-				io = IO::Memory.new()
-				s.split(".")[0,4].each {|i|
-					io.write_byte i.to_u8
-				}
-				@raw_data = io.to_slice
-			else
-				io = IO::Memory.new
-				io.puts s
-				@raw_data = io.to_slice
-		end
+		io.write_network_short( rd.size )
+		io.write rd.to_slice
 	end
 	def inspect( io : IO )
 		io << "#<DNS::RR::"
@@ -192,7 +170,7 @@ class DNS::RR
 		io << " "
 		@name.inspect(io)
 		io << " = "
-		data.inspect(io)
+		raw_data.inspect(io)
 		io << ">"
 	end
 end

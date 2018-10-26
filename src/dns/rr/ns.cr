@@ -17,6 +17,12 @@ class DNS::RR::NS < DNS::RR
 		return rr
 	end
 
+	def raw_data() : Bytes
+		return Bytes.new(1,0)
+	end
+	def raw_data=( b : Bytes )
+	end
+
 	property name_server : String = ""
 end
 

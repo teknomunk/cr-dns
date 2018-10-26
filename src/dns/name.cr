@@ -1,6 +1,5 @@
 
-
-class DNS::RR
+module DNS
 	def self.decode_name( io : IO, packets : Bytes ) : String
 		parts = [] of String
 		part_size = 1

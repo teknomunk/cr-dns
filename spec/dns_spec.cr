@@ -24,10 +24,14 @@ describe DNS do
 				msg.questions[0].type.should eq(DNS::RR::Type::A)
 				msg.questions[0].name.should eq("media-server.polaris.lan.")
 
-				msg.answers[0].type.should eq(DNS::RR::Type::A)
-				msg.answers[0].name.should eq("media-server.polaris.lan.")
-				msg.answers[0].data.should eq("192.168.20.9")
-				msg.answers[0].ttl.should eq(10)
+				rr = msg.answers[0]
+
+				rr.type.should eq(DNS::RR::Type::A)
+				rr.name.should eq("media-server.polaris.lan.")
+				if rr.is_a?(DNS::RR::A)
+					rr.ip_address.should eq("192.168.20.9")
+				end
+				rr.ttl.should eq(10)
 
 				msg.additional[0].type.should eq(DNS::RR::Type::OPT)
 				if (opt=msg.additional[0]).is_a?(DNS::RR::OPT)
@@ -49,15 +53,13 @@ describe DNS do
 				msg.response_code = DNS::Message::NoError
 				msg.authenticated = false
 
-				rr = DNS::RR.new
-				rr.type = DNS::RR::Type::A
+				rr = DNS::RR::A.new
 				rr.name = "media-server.polaris.lan."
 				msg.questions.push(rr)
 
-				rr = DNS::RR.new
-				rr.type = DNS::RR::Type::A
+				rr = DNS::RR::A.new
 				rr.name = "media-server.polaris.lan."
-				rr.data = "192.168.20.9"
+				rr.ip_address = "192.168.20.9"
 				rr.ttl = 10
 				msg.answers.push(rr)
 

@@ -18,6 +18,12 @@ class DNS::RR::MX < DNS::RR
 		return rr
 	end
 
+	def raw_data() : Bytes
+		return Bytes.new(1,0)
+	end
+	def raw_data=( b : Bytes )
+	end
+
 	property preference : UInt16 = UInt16::MAX
 	property exchange : String = ""
 end

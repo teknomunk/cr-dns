@@ -17,6 +17,11 @@ class DNS::RR::AAAA < DNS::RR
 		return rr
 	end
 
+	def raw_data()
+	end
+	def raw_data=( b : Bytes )
+	end
+
 	property ip_address : String = "::1"
 end
 

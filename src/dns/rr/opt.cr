@@ -60,21 +60,24 @@ class DNS::RR::OPT < DNS::RR
 	def initialize()
 		@type = DNS::RR::Type::OPT
 	end
-	def encode( io : IO )
-		encode_options
-		super
-	end
-	def encode_options()
+	#def encode( io : IO )
+	#	encode_options
+	#	super
+	#end
+	#def encode_options()
+	#	io = IO::Memory.new
+	#	@options.each {|opt| opt.encode(io) }
+	#	@raw_data = io.to_slice
+	#end
+	def raw_data() : Bytes
 		io = IO::Memory.new
 		@options.each {|opt| opt.encode(io) }
-		@raw_data = io.to_slice
+		return io.to_slice
 	end
+	def raw_data=( b : Bytes )
+		@options = [] of DNS::Option
 
-	def finish_decode()
-		flags = @ttl & 0xFFFF
-		return if @raw_data.size == 0
-
-		io = IO::Memory.new(@raw_data.to_slice)
+		io = IO::Memory.new(b) #@raw_data.to_slice)
 
 		while io.pos <= ( io.size - 4 )
 			opt = DNS::Option.new
@@ -88,6 +91,10 @@ class DNS::RR::OPT < DNS::RR
 				raise "Error decoding option"
 			end
 		end
+	end
+
+	def finish_decode()
+		flags = @ttl & 0xFFFF
 	end
 
 	def inspect( io : IO )
