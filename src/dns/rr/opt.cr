@@ -25,6 +25,13 @@ end
 class DNS::RR::OPT < DNS::RR
 	property options : Array(DNS::Option) = [] of DNS::Option
 
+	include DNS::RR::CommonRegex
+	REGEX = /^thisshouldneverbeathing$/
+
+	def self.decode_zone( ctx, md : Regex::MatchData )
+		return nil
+	end
+
 	def extended_rcode()
 		( @ttl >> 24 ) & 0xFF
 	end
@@ -60,15 +67,6 @@ class DNS::RR::OPT < DNS::RR
 	def initialize()
 		@type = DNS::RR::Type::OPT
 	end
-	#def encode( io : IO )
-	#	encode_options
-	#	super
-	#end
-	#def encode_options()
-	#	io = IO::Memory.new
-	#	@options.each {|opt| opt.encode(io) }
-	#	@raw_data = io.to_slice
-	#end
 	def raw_data() : Bytes
 		io = IO::Memory.new
 		@options.each {|opt| opt.encode(io) }

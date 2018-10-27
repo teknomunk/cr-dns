@@ -96,7 +96,8 @@ class DNS::Zone
 					{% for type in RR::TYPES %}
 						when RR::{{type.id}}::REGEX
 							ctx.update_optional(md=$~)
-							@records.push( RR::{{type.id}}.decode_zone( ctx, md ) )
+							rr = RR::{{type.id}}.decode_zone( ctx, md ) 
+							@records.push(rr) if !rr.nil?
 					{% end %}
 					when ""
 					else
