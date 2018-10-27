@@ -6,8 +6,7 @@ class DNS::Zone
 		do_initialize(io)
 	end
 
-	@origin = "."
-	@ttl = 0
+	property origin : String = "."
 	property records : Array(RR) = [] of RR
 
 	include RR::CommonRegex
@@ -63,6 +62,21 @@ class DNS::Zone
 			if !(md3=md[3]?).nil? && md3 != ""
 				@cls		= md3
 			end
+		end
+	end
+
+	def try_dispatch( req : Server::Request, q : RR )
+		puts "DNS::Zone#try_dispatch"
+		puts req.inspect
+		puts q.inspect
+
+		if /#{@origin}$/ =~ q.name
+			@records.find {|rr|
+				if rr.type == q.type && /^#{rr.name.gsub(".","\.").gsub("*",".*")}$/ =~ q.name
+					req.message.answers.push(rr)
+					true
+				end
+			} || false
 		end
 	end
 
