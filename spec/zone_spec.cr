@@ -35,7 +35,8 @@ VAXA    A       10.2.0.27
 							   "@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment\n"+
 							   "@  1D  IN  NS    @\n"+
 							   "@  1D  IN  A     127.0.0.1\n"+
-							   "@  1D  IN  AAAA  ::1\n" )
+							   "@  1D  IN  AAAA  ::1\n"
+							   )
 
 				zone = DNS::Zone.new(io)
 				zone.records.size.should eq(4)
@@ -82,6 +83,12 @@ VAXA    A       10.2.0.27
 			end # it "Loads a zone file sample from Wikipedia"
 		end # describe "#initialize" do
 
+		describe "#to_s(io)" do
+			it "Can turn a zone into a zone file" do
+				#z = DNS::Zone.new()
+			end
+		end
+
 		it "Can be used with a DNS server" do
 			srv = DNS::Server.new()
 
@@ -89,12 +96,12 @@ VAXA    A       10.2.0.27
 						   "@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment\n"+
 						   "@  1D  IN  NS    @\n"+
 						   "@  1D  IN  A     127.0.0.1\n"+
-						   "@  1D  IN  AAAA  ::1\n" )
+						   "@  1D  IN  AAAA  ::1\n" +
+						   "*.test 1D IN A	127.0.0.2\n"
+						   )
 
 			
 			zone = DNS::Zone.new(io)
-			#puts "zone:"
-			#puts zone.inspect
 
 			srv.add_zone( zone )
 			spawn do
@@ -103,9 +110,7 @@ VAXA    A       10.2.0.27
 
 			srv.channel_listener.send_request( DNS::Message.simple_query( "A", "localhost." ).not_nil! )
 			msg = srv.channel_listener.get_response()
-
-			#puts "msg:"
-			#puts msg.inspect
+			
 			msg.answers.size.should eq(1)
 			msg.answers[0].type.should eq(DNS::RR::Type::A)
 			if (rr=msg.answers[0]).is_a?(DNS::RR::A)

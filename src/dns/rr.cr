@@ -84,13 +84,13 @@ abstract class DNS::RR
 
 	module CommonRegex
 		DNAME="(@|[A-Za-z\-0-9\.]+)"
+		ZONE_DNAME="(@|(?:\\*\\.)?[A-Za-z\-0-9\.]+)"
 		WS="[ \t]+"
 		TIME="([0-9]+[WDMwdm])?"
 		CLS="(IN|)"
 		IPV4_ADDR="([0-9\.]+)"
 		IPV6_ADDR="([0-9A-Fa-f\.:]+)"
-		ZONE_OPTIONAL="(?:#{DNAME}?#{WS})(?:#{TIME}#{WS})?#{CLS}?#{WS}"
-		#ZONE_OPTIONAL="(.*)"
+		ZONE_OPTIONAL="(?:#{ZONE_DNAME}?#{WS})(?:#{TIME}#{WS})?#{CLS}?#{WS}"
 	end
 
 	enum Cls

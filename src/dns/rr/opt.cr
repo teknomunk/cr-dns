@@ -26,7 +26,7 @@ class DNS::RR::OPT < DNS::RR
 	property options : Array(DNS::Option) = [] of DNS::Option
 
 	include DNS::RR::CommonRegex
-	REGEX = /^thisshouldneverbeathing$/
+	REGEX = /^this should never match any entry in the zone file$/
 
 	def self.decode_zone( ctx, md : Regex::MatchData )
 		return nil
