@@ -6,7 +6,7 @@ abstract class DNS::Server::Listener
 	abstract def send_response( req : Request )
 
 	def run()
-		puts "Starting listener loop"
+		#puts "Starting listener loop"
 		spawn do
 			loop {
 				begin

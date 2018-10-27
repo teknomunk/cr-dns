@@ -93,8 +93,8 @@ VAXA    A       10.2.0.27
 
 			
 			zone = DNS::Zone.new(io)
-			puts "zone:"
-			puts zone.inspect
+			#puts "zone:"
+			#puts zone.inspect
 
 			srv.add_zone( zone )
 			spawn do
@@ -104,10 +104,14 @@ VAXA    A       10.2.0.27
 			srv.channel_listener.send_request( DNS::Message.simple_query( "A", "localhost." ).not_nil! )
 			msg = srv.channel_listener.get_response()
 
-			puts "msg:"
-			puts msg.inspect
+			#puts "msg:"
+			#puts msg.inspect
 			msg.answers.size.should eq(1)
 			msg.answers[0].type.should eq(DNS::RR::Type::A)
+			if (rr=msg.answers[0]).is_a?(DNS::RR::A)
+				rr.ip_address.should eq("127.0.0.1")
+				rr.ttl.should_not eq(0)
+			end
 		end
 	end # describe DNS::Zone do
 end # describe DNS do

@@ -42,7 +42,7 @@ class DNS::Server
 		@listeners.each {|l| l.run }
 
 		# event processing loop
-		puts "Entering event processing loop"
+		#puts "Entering event processing loop"
 		loop do
 			@listeners.each {|l|
 				while !l.request_channel.empty?

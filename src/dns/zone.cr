@@ -66,10 +66,6 @@ class DNS::Zone
 	end
 
 	def try_dispatch( req : Server::Request, q : RR )
-		puts "DNS::Zone#try_dispatch"
-		puts req.inspect
-		puts q.inspect
-
 		if /#{@origin}$/ =~ q.name
 			@records.find {|rr|
 				if rr.type == q.type && /^#{rr.name.gsub(".","\.").gsub("*",".*")}$/ =~ q.name
