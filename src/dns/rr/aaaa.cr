@@ -22,6 +22,14 @@ class DNS::RR::AAAA < DNS::RR
 	def raw_data=( b : Bytes )
 	end
 
+	def clone()
+		other = DNS::RR::AAAA.new
+		other.name = @name
+		other.ttl = @ttl
+		other.ip_address = @ip_address
+		return other
+	end
+
 	property ip_address : String = "::1"
 end
 

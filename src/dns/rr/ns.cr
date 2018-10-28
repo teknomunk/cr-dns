@@ -23,6 +23,14 @@ class DNS::RR::NS < DNS::RR
 	def raw_data=( b : Bytes )
 	end
 
+	def clone()
+		other = DNS::RR::NS.new()
+		other.name = @name
+		other.ttl = @ttl
+		other.name_server = @name_server
+		return other
+	end
+
 	property name_server : String = ""
 end
 

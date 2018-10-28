@@ -24,6 +24,15 @@ class DNS::RR::MX < DNS::RR
 	def raw_data=( b : Bytes )
 	end
 
+	def clone()
+		other = DNS::RR::MX.new()
+		other.name = @name
+		other.ttl = @ttl
+		other.preference = @preference
+		other.exchange = @exchange
+		return other
+	end
+
 	property preference : UInt16 = UInt16::MAX
 	property exchange : String = ""
 end

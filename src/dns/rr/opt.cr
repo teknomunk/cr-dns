@@ -94,6 +94,12 @@ class DNS::RR::OPT < DNS::RR
 	def finish_decode()
 		flags = @ttl & 0xFFFF
 	end
+	def clone()
+		other = DNS::RR::OPT.new()
+		other.name = @name
+		other.ttl = @ttl
+		return other
+	end
 
 	def inspect( io : IO )
 		io << "#<DNS::RR::OPT"

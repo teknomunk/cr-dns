@@ -69,7 +69,13 @@ class DNS::Zone
 		if /#{@origin}$/ =~ q.name
 			@records.find {|rr|
 				if rr.type == q.type && /^#{rr.name.gsub(".","\.").gsub("*",".*")}$/ =~ q.name
-					req.message.answers.push(rr)
+					if rr.name[0] == '*'
+						rr2 = rr.clone
+						rr2.name = q.name
+						req.message.answers.push(rr2)
+					else
+						req.message.answers.push(rr)
+					end
 					true
 				end
 			} || false

@@ -31,6 +31,14 @@ class DNS::RR::SOA < DNS::RR
 	def raw_data=( b : Bytes )
 	end
 
+	def clone()
+		other = DNS::RR::SOA.new()
+		{% for i in %w( name ttl mname rname serial refresh retry expire minimum ) %}
+			other.{{i.id}} = @{{i.id}}
+		{% end %}
+		return other
+	end
+
 	property mname : String = ""
 	property rname : String = ""
 	property serial : UInt32 = 0

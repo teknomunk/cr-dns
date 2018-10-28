@@ -28,6 +28,14 @@ class DNS::RR::A < DNS::RR
 		@ip_address = b.to_a.join(".")
 	end
 
+	def clone()
+		other = DNS::RR::A.new()
+		other.name = @name
+		other.ttl = @ttl
+		other.ip_address = @ip_address
+		return other
+	end
+
 	property ip_address : String = "0.0.0.0"
 end
 
