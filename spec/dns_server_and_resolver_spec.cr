@@ -16,8 +16,11 @@ describe DNS do
 			end
 
 			resolv = DNS::Resolver.new( server.channel_listener )
-#			sleep 1
-#			puts `dig @localhost -p8000 example.com`
+			res = resolv.resolve( DNS::Message.simple_query( "A", "example.com" ) )
+			res.response_code.should eq(DNS::Message::ResponseCode::NoError)
+			res.truncated.should eq(false)
+			res.answers.size.should eq(1)
+			puts res.inspect
 		end
 	end
 end

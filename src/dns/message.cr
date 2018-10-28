@@ -70,7 +70,7 @@ class DNS::Message
 						return q
 				{% end %}
 				else
-					return nil
+					raise "Unsupported query type: #{type}"
 			end
 		{% end %}
 	end
