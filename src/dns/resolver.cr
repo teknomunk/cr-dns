@@ -1,0 +1,4 @@
+class DNS::Resolver
+	
+end
+
