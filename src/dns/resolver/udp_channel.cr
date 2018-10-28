@@ -1,4 +1,4 @@
-class DNS::Resolver::UDP_Channel < DNS::Resolver::Channel
+class DNS::Resolver::UDPChannel < DNS::Resolver::Channel
 	@socket : UDPSocket
 	@buffer = Bytes.new(512)
 	def initialize( hostname : String, port : Number )

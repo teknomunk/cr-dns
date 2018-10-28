@@ -1,13 +1,13 @@
 class DNS::Server::UDPListener < DNS::Server::Listener
 	@socket : UDPSocket
 	@buffer = Bytes.new(4096)
-	def initialize(@socket)
+	def initialize( addr : String, port : Number )
+		@socket = UDPSocket.new()
+		@socket.bind(addr,port)
 	end
 
 	def get_request() : Request?
 		size,addr = @socket.receive(@buffer)
-		#puts "Received request:"
-		#puts @buffer[0,size].inspect
 
 		# Create a new request
 		req = Request.new(addr)

@@ -1,7 +1,8 @@
 class DNS::Server::TCPListener < DNS::Server::Listener
 	@socket : TCPSocket
 
-	def initialize(@socket)
+	def initialize( addr : String, port : Number )
+		@socket = TCPServer.new(addr,port)
 	end
 
 	def get_request() : Request?

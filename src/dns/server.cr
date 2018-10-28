@@ -23,15 +23,7 @@ class DNS::Server
 	def initialize()
 		@listeners.push(@channel_listener)
 	end
-	def listen_udp( addr, port )
-		# Setup UDP listener
-		l = UDPListener.new(sock=UDPSocket.new)
-		sock.bind( addr, port )
-		@listeners.push(l)
-	end
-	def listen_tcp( addr, port )
-		# Setup TCP listener
-		l = TCPListener.new(TCPServer.new( addr, port ))
+	def add_listener( l : DNS::Server::Listener )
 		@listeners.push(l)
 	end
 
