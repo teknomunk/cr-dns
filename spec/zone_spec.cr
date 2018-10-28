@@ -120,13 +120,14 @@ VAXA    A       10.2.0.27
 			end
 
 			# Check wildcard request
-			srv.channel_listener.send_request( DNS::Message.simple_query( "A", "something.test.localhost." ).not_nil! )
-			msg = srv.channel_listener.get_response()
+			resolv = DNS::Resolver.new( srv.channel_listener )
+			msg = resolv.resolve( DNS::Message.simple_query( "A", "something.test.localhost." ) )
+			#srv.channel_listener.send_request( DNS::Message.simple_query( "A", "something.test.localhost." ).not_nil! )
+			#msg = srv.channel_listener.get_response()
 
 			msg.answers.size.should eq(1)
 			msg.answers[0].type.should eq(DNS::RR::Type::A)
 			msg.answers[0].name.should eq("something.test.localhost.")
-			puts msg.answers.inspect
 			if (rr=msg.answers[0]).is_a?(DNS::RR::A)
 				rr.ip_address.should eq("127.0.0.2")
 				rr.ttl.should_not eq(0)

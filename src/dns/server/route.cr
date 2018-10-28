@@ -4,7 +4,7 @@ class DNS::Server::Route
 	@cls : RR::Cls
 	@handler : Request,RR -> Bool
 
-	def initialize( @domain, @type, @cls, &handler : Request,RR->Bool_ )
+	def initialize( @domain, @type, @cls, &handler : Request,RR->Bool )
 		@handler = ->( req : Request, q : RR ) do
 			begin
 				return handler.call(req,q)
