@@ -17,10 +17,10 @@ class DNS::RR::NS < DNS::RR
 		return rr
 	end
 
-	def raw_data() : Bytes
+	def get_raw_data( packet : Bytes ) : Bytes
 		return Bytes.new(1,0)
 	end
-	def raw_data=( b : Bytes )
+	def set_raw_data( packet : Bytes, rdata : Bytes )
 	end
 
 	def clone()

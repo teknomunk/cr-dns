@@ -103,8 +103,8 @@ abstract class DNS::RR
 	property cls : Cls = Cls::IN
 	property ttl : UInt32 = 0
 
-	abstract def raw_data=( data : Bytes )
-	abstract def raw_data() : Bytes
+	abstract def set_raw_data( packet : Bytes, rdata : Bytes )
+	abstract def get_raw_data( packet : Bytes ) : Bytes
 
 	def self.decode_query( io : IO, packet : Bytes ) : DNS::RR
 		name = DNS.decode_name(io,packet)
@@ -141,7 +141,7 @@ abstract class DNS::RR
 			io.read data
 			raise "Expecting #{data_length} bytes" if data.nil?
 
-			rr.raw_data = data
+			rr.set_raw_data( packet, data )
 		end
 		rr.finish_decode()
 		return rr
@@ -154,7 +154,7 @@ abstract class DNS::RR
 		io.write_network_short( @cls.to_i32 )
 	end
 	def encode( io : IO )
-		rd = raw_data
+		rd = get_raw_data(io.to_slice)
 		raise "Error encoding data" if rd.nil?
 
 		encode_query(io)

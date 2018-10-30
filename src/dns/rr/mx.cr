@@ -18,10 +18,13 @@ class DNS::RR::MX < DNS::RR
 		return rr
 	end
 
-	def raw_data() : Bytes
-		return Bytes.new(1,0)
+	def get_raw_data( packet : Bytes ) : Bytes
+		io = IO::Memory.new()
+		io.write_network_short( @preference )
+		DNS.encode_name( @exchange, io, packet )
+		return io.to_slice
 	end
-	def raw_data=( b : Bytes )
+	def set_raw_data( packet : Bytes, rdata : Bytes )
 	end
 
 	def clone()

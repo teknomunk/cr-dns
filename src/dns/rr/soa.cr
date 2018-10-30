@@ -25,10 +25,17 @@ class DNS::RR::SOA < DNS::RR
 		return rr
 	end
 
-	def raw_data()
-		return Bytes.new(1,0)
+	def get_raw_data( packet : Bytes )
+		io = IO::Memory.new()
+		io.write(packet)
+		DNS.encode_name( @mname, io, packet + io.to_slice )
+		DNS.encode_name( @name, io, packet + io.to_slice )
+		{% for n in %w( serial refresh retry expire minimum ) %}
+			io.write_network_long( @{{n.id}} )
+		{% end %}
+		return io.to_slice
 	end
-	def raw_data=( b : Bytes )
+	def set_raw_data( packet : Bytes, rdata : Bytes )
 	end
 
 	def clone()

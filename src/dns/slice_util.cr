@@ -1,4 +1,10 @@
 struct Slice(T)
+	def +( other : Slice(T) )
+		new_slice = Slice(T).new( size + other.size )
+		size.times {|i| new_slice[i] = self[i] }
+		other.size.times {|i| new_slice[i+size] = other[i] }
+		return new_slice
+	end
 	def substring_search( substr : Slice(T) ) : Int32?
 		i = 0
 		i_limit = size - substr.size + 1

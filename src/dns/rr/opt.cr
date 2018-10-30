@@ -67,15 +67,15 @@ class DNS::RR::OPT < DNS::RR
 	def initialize()
 		@type = DNS::RR::Type::OPT
 	end
-	def raw_data() : Bytes
+	def get_raw_data( packet : Bytes ) : Bytes
 		io = IO::Memory.new
 		@options.each {|opt| opt.encode(io) }
 		return io.to_slice
 	end
-	def raw_data=( b : Bytes )
+	def set_raw_data( packet : Bytes, rdata : Bytes )
 		@options = [] of DNS::Option
 
-		io = IO::Memory.new(b) #@raw_data.to_slice)
+		io = IO::Memory.new(rdata)
 
 		while io.pos <= ( io.size - 4 )
 			opt = DNS::Option.new

@@ -18,14 +18,14 @@ class DNS::RR::A < DNS::RR
 		return rr
 	end
 
-	def raw_data()
+	def get_raw_data( packet : Bytes )
 		b = Bytes.new(4,0)
 		@ip_address.split(".").each_with_index {|v,i| b[i] = v.to_u8 }
 		return b
 	end
-	def raw_data=( b : Bytes )
-		raise "Expecting 4 bytes, not #{b.size}" if b.size != 4
-		@ip_address = b.to_a.join(".")
+	def set_raw_data( packet : Bytes, rdata : Bytes )
+		raise "Expecting 4 bytes, not #{rdata.size}" if rdata.size != 4
+		@ip_address = rdata.to_a.join(".")
 	end
 
 	def clone()
