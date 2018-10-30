@@ -7,7 +7,13 @@ class DNS::Server::TCPListener < DNS::Server::Listener
 
 	def get_request() : Request?
 		if !(s=@socket.accept?).nil?
+			size = s.read_network_short.to_i32
+			buffer = Bytes.new(size,0)
+			count = s.read(buffer)
+			raise "Protocol error: expecting #{size} bytes, got #{count}" if count != size
+
 			req = Request.new()
+			req.message = Message.decode(buffer)
 			req.socket = s
 			return req
 		end
@@ -15,7 +21,10 @@ class DNS::Server::TCPListener < DNS::Server::Listener
 	end
 	def send_response( req : Request )
 		if !(sock=req.socket).nil?
-			sock.send( req.message.encode() )
+			data = req.message.encode()
+			sock.write_network_short( data.size )
+			sock.write(data)
+			sock.close()
 		end
 	end
 end # end TCPListener < Listener

@@ -39,6 +39,7 @@ describe DNS do
 			end
 
 			resolv = DNS::Resolver.new( DNS::Resolver::TCPChannel.new("localhost",15000) )
+			res = resolv.resolve( DNS::Message.simple_query( "A", "example.com" ) )
 			res.truncated.should eq(false)
 			res.answers.size.should eq(1)
 			if (rr=res.answers[0]).is_a?(DNS::RR::A)
