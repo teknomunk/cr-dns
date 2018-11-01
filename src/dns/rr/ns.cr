@@ -18,7 +18,9 @@ class DNS::RR::NS < DNS::RR
 	end
 
 	def get_raw_data( packet : Bytes ) : Bytes
-		return Bytes.new(1,0)
+		io = IO::Memory.new
+		DNS.encode_name( @name_server, io, packet )
+		return io.to_slice
 	end
 	def set_raw_data( packet : Bytes, rdata : Bytes )
 	end

@@ -154,10 +154,11 @@ abstract class DNS::RR
 		io.write_network_short( @cls.to_i32 )
 	end
 	def encode( io : IO )
+		encode_query(io)
+
 		rd = get_raw_data(io.to_slice)
 		raise "Error encoding data" if rd.nil?
 
-		encode_query(io)
 		io.write_network_long( @ttl )
 		io.write_network_short( rd.size )
 		io.write rd.to_slice

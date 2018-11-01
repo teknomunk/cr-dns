@@ -47,7 +47,7 @@ module DNS
 		i_limit = parts.size
 		while i < i_limit
 			substr = Bytes.concat_slices(parts[i..-1])
-			if substr.size >= 2 && (idx=io.to_slice.substring_search(substr))
+			if substr.size >= 2 && (idx=packet.substring_search(substr))
 				io.write_network_short( 0xC000_u16 | idx )
 				return
 			else
