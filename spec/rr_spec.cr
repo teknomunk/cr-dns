@@ -34,5 +34,18 @@ describe DNS do
 					).to_slice_from_hexstring)
 			end
 		end
+		describe DNS::RR::TXT do
+			it "encodes" do
+				rr = DNS::RR::TXT.new()
+				rr.name = "example.com."
+				rr.text = (t="DNSLINK=/ipfs/QmYrmnuar6wM7SkUTtdyfv1b4Dsq6HAnHkdhLYF2F1dwZ2/")
+				rr.encode(io=IO::Memory.new)
+				io.to_slice.should eq((
+					"07#{ "example".to_hexbytes}03#{"com".to_hexbytes}00"+"0010"+"0001"+"00000000"+
+					("%04X" % t.size)+
+					"#{ t.to_hexbytes }"
+					).to_slice_from_hexstring)
+			end
+		end
 	end
 end
