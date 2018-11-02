@@ -25,6 +25,9 @@ class DNS::RR::MX < DNS::RR
 		return io.to_slice
 	end
 	def set_raw_data( packet : Bytes, rdata : Bytes )
+		io = IO::Memory.new(rdata)
+		@preference = io.read_network_short()
+		@exchange = DNS.decode_name( io, packet )
 	end
 
 	def clone()

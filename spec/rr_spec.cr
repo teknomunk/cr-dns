@@ -42,8 +42,8 @@ describe DNS do
 				rr.encode(io=IO::Memory.new)
 				io.to_slice.should eq((
 					"07#{ "example".to_hexbytes}03#{"com".to_hexbytes}00"+"0010"+"0001"+"00000000"+
-					("%04X" % t.size)+
-					"#{ t.to_hexbytes }"
+					("%04X" % (t.size+1))+
+					("%02X" % t.size)+"#{ t.to_hexbytes }"
 					).to_slice_from_hexstring)
 			end
 		end

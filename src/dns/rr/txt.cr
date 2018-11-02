@@ -19,10 +19,13 @@ class DNS::RR::TXT < DNS::RR
 	end
 
 	def get_raw_data( packet : Bytes )
-		@text.to_slice()
+		io = IO::Memory.new()
+		io.write_byte( @text.size.to_u8 )
+		io.write( @text.to_slice )
+		io.to_slice()
 	end
 	def set_raw_data( packet : Bytes, rdata : Bytes )
-		@text = String.new(rdata)
+		@text = String.new(rdata+1)
 	end
 
 	def clone()
