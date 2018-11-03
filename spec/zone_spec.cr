@@ -4,39 +4,44 @@ describe DNS do
 	describe DNS::Zone do
 		describe "#initialize" do
 			it "Loads the example zone file from RFC 1035, section 5.3" do
-				io=IO::Memory.new("
-@   IN  SOA     VENERA      Action\.domains (
-                                 20     ; SERIAL
-                                 7200   ; REFRESH
-                                 600    ; RETRY
-                                 3600000; EXPIRE
-                                 60)    ; MINIMUM
-
-        NS      A.ISI.EDU.
-        NS      VENERA
-        NS      VAXA
-        MX      10      VENERA
-        MX      20      VAXA
-
-A       A       26.3.0.103
-
-VENERA  A       10.1.0.52
-        A       128.9.0.32
-
-VAXA    A       10.2.0.27
-        A       128.9.0.33
-")
+				io=IO::Memory.new(
+					<<-FILE
+					@   IN  SOA     VENERA      Action\.domains (
+					                                 20     ; SERIAL
+					                                 7200   ; REFRESH
+					                                 600    ; RETRY
+					                                 3600000; EXPIRE
+					                                 60)    ; MINIMUM
+					
+					        NS      A.ISI.EDU.
+					        NS      VENERA
+					        NS      VAXA
+					        MX      10      VENERA
+					        MX      20      VAXA
+					
+					A       A       26.3.0.103
+					
+					VENERA  A       10.1.0.52
+					        A       128.9.0.32
+					
+					VAXA    A       10.2.0.27
+					        A       128.9.0.33
+					FILE
+				)
 				zone = DNS::Zone.new(io)
 				zone.records.size.should eq(11)
 			end # it "Loads the example zone file from RFC 1035, section 5.3"
 
 			it "Loads a zone file sample from Wikipedia" do
-				io=IO::Memory.new("$ORIGIN localhost.\n"+
-							   "@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment\n"+
-							   "@  1D  IN  NS    @\n"+
-							   "@  1D  IN  A     127.0.0.1\n"+
-							   "@  1D  IN  AAAA  ::1\n"
-							   )
+				io=IO::Memory.new(
+					<<-FILE
+					$ORIGIN localhost.
+					@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment
+					@  1D  IN  NS    @
+					@  1D  IN  A     127.0.0.1
+					@  1D  IN  AAAA  ::1
+					FILE
+				)
 
 				zone = DNS::Zone.new(io)
 				zone.records.size.should eq(4)
@@ -89,16 +94,115 @@ VAXA    A       10.2.0.27
 			end
 		end
 
+		it "can read TXT records" do
+			io=IO::Memory.new(
+				<<-FILE
+				$ORIGIN localhost.
+				@	1D	IN	TXT "This is a test"
+				FILE
+			)
+			zone = DNS::Zone.new(io)
+
+			zone.records.size.should eq(1)
+			rr=zone.records[0]
+			rr.type.should eq(DNS::RR::Type::TXT)
+			rr.name.should eq("localhost.")
+			rr.ttl.should eq(86400)
+			if rr.is_a?(DNS::RR::TXT)
+				rr.text.should eq("This is a test")
+			end
+		end
+
+		it "can read CNAME records" do
+			io=IO::Memory.new(
+				<<-FILE
+				$ORIGIN localhost.
+				@	1D	IN	CNAME	remote.host.
+				FILE
+			)
+			zone = DNS::Zone.new(io)
+
+			zone.records.size.should eq(1)
+			rr=zone.records[0]
+			rr.type.should eq(DNS::RR::Type::CNAME)
+			rr.name.should eq("localhost.")
+			rr.ttl.should eq(86400)
+			if rr.is_a?(DNS::RR::CNAME)
+				rr.domain_name.should eq("remote.host.")
+			end
+		end
+
+		it "can read A records" do
+			io=IO::Memory.new(
+				<<-FILE
+				$ORIGIN localhost.
+				@	1D	IN	A	127.0.0.1
+				FILE
+			)
+			zone = DNS::Zone.new(io)
+
+			zone.records.size.should eq(1)
+			rr=zone.records[0]
+			rr.type.should eq(DNS::RR::Type::A)
+			rr.name.should eq("localhost.")
+			rr.ttl.should eq(86400)
+			if rr.is_a?(DNS::RR::A)
+				rr.ip_address.should eq("127.0.0.1")
+			end
+		end
+
+		it "can read AAAA records" do
+			io=IO::Memory.new(
+				<<-FILE
+				$ORIGIN localhost.
+				@	1D	IN	AAAA	::1
+				FILE
+			)
+			zone = DNS::Zone.new(io)
+
+			zone.records.size.should eq(1)
+			rr=zone.records[0]
+			rr.type.should eq(DNS::RR::Type::AAAA)
+			rr.name.should eq("localhost.")
+			rr.ttl.should eq(86400)
+			if rr.is_a?(DNS::RR::AAAA)
+				rr.ip_address.should eq("::1")
+			end
+		end
+
+		it "can read HINFO records" do
+			io=IO::Memory.new(
+				<<-FILE
+				$ORIGIN localhost.
+				@	1D	IN	HINFO "PDP-11/70" "UNIX"
+				FILE
+			)
+			zone = DNS::Zone.new(io)
+
+			zone.records.size.should eq(1)
+			rr=zone.records[0]
+			rr.type.should eq(DNS::RR::Type::HINFO)
+			rr.name.should eq("localhost.")
+			rr.ttl.should eq(86400)
+			if rr.is_a?(DNS::RR::HINFO)
+				rr.cpu.should eq("PDP-11/70")
+				rr.os.should eq("UNIX")
+			end
+		end
+
 		it "can be used with a DNS server" do
 			srv = DNS::Server.new()
 
-			io=IO::Memory.new("$ORIGIN localhost.\n"+
-						   "@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment\n"+
-						   "@  1D  IN  NS    @\n"+
-						   "@  1D  IN  A     127.0.0.1\n"+
-						   "@  1D  IN  AAAA  ::1\n" +
-						   "*.test 1D IN A	127.0.0.2\n"
-						   )
+			io=IO::Memory.new(
+				<<-FILE
+				$ORIGIN localhost.
+				@  1D  IN  SOA   @  root 1999010100 3h 15m 1w 1d ; test comment
+				@  1D  IN  NS    @
+				@  1D  IN  A     127.0.0.1
+				@  1D  IN  AAAA  ::1
+				*.test 1D IN A	127.0.0.2
+				FILE
+			)
 
 			
 			zone = DNS::Zone.new(io)
