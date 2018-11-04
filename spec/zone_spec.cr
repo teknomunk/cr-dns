@@ -131,6 +131,24 @@ describe DNS do
 				rr.domain_name.should eq("remote.host.")
 			end
 		end
+		it "can read PTR records" do
+			io=IO::Memory.new(
+				<<-FILE
+				$ORIGIN some.host.
+				@	1D	IN	PTR	another.host.
+				FILE
+			)
+			zone = DNS::Zone.new(io)
+
+			zone.records.size.should eq(1)
+			rr=zone.records[0]
+			rr.type.should eq(DNS::RR::Type::PTR)
+			rr.name.should eq("some.host.")
+			rr.ttl.should eq(86400)
+			if rr.is_a?(DNS::RR::PTR)
+				rr.domain_name.should eq("another.host.")
+			end
+		end
 
 		it "can read A records" do
 			io=IO::Memory.new(

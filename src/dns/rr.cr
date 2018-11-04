@@ -80,7 +80,7 @@ abstract class DNS::RR
 		UNSPEC		= 103
 		SPF			= 99
 	end
-	TYPES = %w( A AAAA CNAME HINFO MX NS OPT TXT SOA )
+	TYPES = %w( A AAAA CNAME HINFO MX NS OPT PTR TXT SOA )
 
 	module CommonRegex
 		DNAME="(@|[A-Za-z\-0-9\.]+)"
