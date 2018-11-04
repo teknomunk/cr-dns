@@ -59,6 +59,9 @@ describe DNS do
 					raise "Expecting DNS::RR::SOA, not #{rr.class}"
 				end
 
+				# The soa pro
+				zone.soa.should eq(zone.records[0])
+
 				zone.records[1].type.should eq(DNS::RR::Type::NS)
 				if (rr=zone.records[1]).is_a?(DNS::RR::NS)
 					rr.name_server.should eq("localhost.")

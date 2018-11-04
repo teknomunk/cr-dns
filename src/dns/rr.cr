@@ -170,8 +170,6 @@ abstract class DNS::RR
 		io << @type
 		io << " "
 		@name.inspect(io)
-		io << " = "
-		raw_data.inspect(io)
 		io << ">"
 	end
 end

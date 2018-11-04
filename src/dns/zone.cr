@@ -8,6 +8,7 @@ class DNS::Zone
 
 	property origin : String = "."
 	property records : Array(RR) = [] of RR
+	getter soa : RR::SOA = RR::SOA.new
 
 	include RR::CommonRegex
 
@@ -113,6 +114,9 @@ class DNS::Zone
 						when RR::{{type.id}}::REGEX
 							ctx.update_optional(md=$~)
 							rr = RR::{{type.id}}.decode_zone( ctx, md ) 
+							{% if type.id == "SOA" %}
+								@soa = rr
+							{% end %}
 							@records.push(rr) if !rr.nil?
 					{% end %}
 					when ""
