@@ -59,7 +59,7 @@ describe DNS do
 					raise "Expecting DNS::RR::SOA, not #{rr.class}"
 				end
 
-				# The soa pro
+				# The soa property should be filled in
 				zone.soa.should eq(zone.records[0])
 
 				zone.records[1].type.should eq(DNS::RR::Type::NS)

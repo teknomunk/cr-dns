@@ -6,4 +6,8 @@ authors:
 
 crystal: 0.26.1
 
+dependencies:
+  mergeheapqueue:
+    github: teknomunk/cr-mergeheapqueue
+
 license: MIT
