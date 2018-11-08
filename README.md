@@ -27,7 +27,7 @@ dependencies:
 ```crystal
 require "dns"
 
-resolv = DNS::Resolver.new( DNS::Server::TCPChannel.new( "127.0.0.0", 5353 ) )
+resolv = DNS::Resolver.new( DNS::Resolver::TCPChannel.new( "127.0.0.0", 5353 ) )
 resolv.send_request( DNS::Message.simple_query( "A", "example.com." ) )
 msg = resolv.get_response()
 
