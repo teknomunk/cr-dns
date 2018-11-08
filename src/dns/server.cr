@@ -26,6 +26,12 @@ class DNS::Server
 	def add_listener( l : DNS::Server::Listener )
 		@listeners.push(l)
 	end
+	def listen_udp( addr : String, port : Number )
+		@listeners.push( DNS::Server::UDPListener.new( addr, port ) )
+	end
+	def listen_tcp( addr : String, port : Number )
+		@listeners.push( DNS::Server::TCPListener.new( addr, port ) )
+	end
 
 	def run()
 		raise "DNS::Server requires at least one listener" if @listeners.size == 0
