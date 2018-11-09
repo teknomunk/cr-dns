@@ -1,34 +1,36 @@
 require "mergeheapqueue"
 
 class DNS::Cache
-	class CacheLine
-		property question : DNS::RR
-
-		property answers : Array(DNS::RR)
-		property authority : Array(DNS::RR)
-		property additional : Array(DNS::RR)
+	class CacheEntry
+		enum Type
+			Answer
+			Authority
+			Additional
+		end
+		getter question : DNS::RR
+		getter answer : DNS::RR
+		getter type : Type
 
 		property expires : Time
 
+		def self.index_string( type : DNS::RR::Type, cls : DNS::RR::Cls, name : String )
+			"#{type} #{cls} #{name}"
+		end
 		def index_string()
-			"#{@question.type} #{@question.cls} #{@question.name}"
+			self.class.index_string( @question.type, @question.cls, @question.name )
 		end
 
 		def <( rhs )
 			return false
 		end
 		
-		def initialize( @question, @answers, @authority, @additional )
-			min_ttl = Int32::MAX
-			{% for i in %w( answers authority additional) %}
-				@{{i.id}}.each {|rr| min_ttl = {min_ttl,rr.ttl}.min }
-			{% end %}
-			@expires = Time.utc_now + Time::Span.new( hours: 0, minutes: 0, seconds: min_ttl )
+		def initialize( @question, @answer, @type, ttl )
+			@expires = Time.now + Time::Span.new(0,0,ttl)
 		end
 	end
 
-	@records = {} of String => CacheLine
-	@queue = MergeHeapQueue(CacheLine).new
+	@records : Hash(String,CacheEntry) = {} of String => CacheEntry
+	@queue = MergeHeapQueue(CacheEntry).new
 
 	def initialize()
 		spawn do
@@ -44,17 +46,31 @@ class DNS::Cache
 	end
 
 	def insert( msg : DNS::Message )
+		raise "TODO: determine how to handle caching messages with multiple questions" if msg.questions.size > 1
+
+		q = msg.questions[0]
+		msg.answers.each {|ans|
+			cl = CacheEntry.new(q, ans, CacheEntry::Type::Answer, ans.ttl )
+			@records[cl.index_string] = cl
+			@queue.push( cl )
+		}
 	end
 	def find( msg : DNS::Message ) : Bool
+		puts @records.size
 		is_match = false
 		msg.questions.each {|q|
-			if !(line=@records[ CacheLine.new(q,[] of DNS::RR, [] of DNS::RR, [] of DNS::RR ) ]?).nil?
-				# TODO: add check here for expires in case any miss the normal sweep
-
-				{% for i in %w( answers authority additional ) %}
-					line.{{i.id}}.each {|rr| msg.{{i.id}}.push(rr) }
-				{% end %}
+			idx = CacheEntry.index_string( q.type, q.cls, q.name )
+			if !(entry=@records[ idx ]?).nil? && entry.expires >= Time.now
 				is_match = true
+
+				case entry.type
+					when CacheEntry::Type::Answer
+						msg.answers.push(entry.answer)
+					when CacheEntry::Type::Authority
+						msg.authority.push(entry.answer)
+					when CacheEntry::Type::Additional
+						msg.additional.push(entry.answer)
+				end
 			end
 		}
 		return is_match
