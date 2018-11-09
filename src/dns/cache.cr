@@ -44,6 +44,9 @@ class DNS::Cache
 			}
 		end
 	end
+	def entry_count()
+		return @records.size
+	end
 
 	def insert( msg : DNS::Message )
 		raise "TODO: determine how to handle caching messages with multiple questions" if msg.questions.size > 1

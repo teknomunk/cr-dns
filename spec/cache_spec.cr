@@ -12,6 +12,7 @@ describe DNS do
 			rr.ttl = 2
 
 			cache.insert( msg1 )
+			cache.entry_count.should eq(1)
 
 			res = cache.find( msg2=DNS::Message.simple_query( "A", "localhost." ) )
 			res.should be_true
@@ -28,6 +29,7 @@ describe DNS do
 
 			res = cache.find( msg2=DNS::Message.simple_query( "A", "localhost." ) )
 			res.should be_false
+			cache.entry_count.should eq(0)
 		end
 	end
 end
