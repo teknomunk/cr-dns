@@ -21,7 +21,7 @@ class DNS::Cache
 		end
 
 		def <( rhs )
-			return false
+			@expires < rhs.expires
 		end
 		
 		def initialize( @question, @answer, @type, ttl )
@@ -56,7 +56,6 @@ class DNS::Cache
 		}
 	end
 	def find( msg : DNS::Message ) : Bool
-		puts @records.size
 		is_match = false
 		msg.questions.each {|q|
 			idx = CacheEntry.index_string( q.type, q.cls, q.name )
