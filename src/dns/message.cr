@@ -58,6 +58,9 @@ class DNS::Message
 		decode( IO::Memory.new(packet), packet )
 	end
 	def self.simple_query( type : String, name : String )
+		# Add missing trailing . if necessary
+		name = "#{name}." if name[-1] != '.'
+
 		{% begin %}
 			case type
 				{% for t in RR::TYPES %}
