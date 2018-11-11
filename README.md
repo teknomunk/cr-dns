@@ -7,9 +7,7 @@ Features:
  * Zone file reader
  * Currently supported Resource Records: A, CNAME, MX, NS, PTR, SOA, and TXT
  * Partially supported Resource Records: AAAA, HINFO, and OPT
-
-Partially implemented:
- * DNS response caching
+ * Simple DNS response caching
 
 ## Installation
 
