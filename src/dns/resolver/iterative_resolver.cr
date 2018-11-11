@@ -1,8 +1,9 @@
 class DNS::Resolver
 end
 
-class DNS::IterativeResolver < DNS::Resolver
+class DNS::Resolver::Iterative < DNS::Resolver
 	property cache : DNS::Cache?
+	property factory : DNS::Resolver::Factory = DNS::Resolver::NetworkFactory.new
 
 	property root_ns = [] of DNS::RR::NS
 	property root_ns_a = [] of DNS::RR::A

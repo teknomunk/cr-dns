@@ -21,7 +21,7 @@ describe DNS do
 			sleep 0.5
 
 			it "can resolve A records" do
-				resolv = DNS::Resolver.new( server.channel_listener )
+				resolv = DNS::Resolver::Remote.new( server.channel_listener )
 				res = resolv.resolve( DNS::Message.simple_query( "A", "example.com" ) )
 				res.response_code.should eq(DNS::Message::ResponseCode::NoError)
 				res.truncated.should eq(false)
@@ -33,7 +33,7 @@ describe DNS do
 			end
 
 			it "can resolve over UDP" do
-				resolv = DNS::Resolver.new( DNS::Resolver::UDPChannel.new("localhost",15000) )
+				resolv = DNS::Resolver::Remote.new( DNS::Resolver::UDPChannel.new("localhost",15000) )
 				res = resolv.resolve( DNS::Message.simple_query( "A", "example.com" ) )
 				res.response_code.should eq(DNS::Message::ResponseCode::NoError)
 				res.truncated.should eq(false)
@@ -45,7 +45,7 @@ describe DNS do
 			end
 
 			it "can resolve over TCP" do
-				resolv = DNS::Resolver.new( DNS::Resolver::TCPChannel.new("localhost",15000) )
+				resolv = DNS::Resolver::Remote.new( DNS::Resolver::TCPChannel.new("localhost",15000) )
 				res = resolv.resolve( DNS::Message.simple_query( "A", "example.com" ) )
 				res.response_code.should eq(DNS::Message::ResponseCode::NoError)
 				res.truncated.should eq(false)
@@ -57,7 +57,7 @@ describe DNS do
 			end
 
 			it "can return results from a cache" do
-				resolv = DNS::Resolver.new( DNS::Resolver::TCPChannel.new("localhost",15000) )
+				resolv = DNS::Resolver::Remote.new( DNS::Resolver::TCPChannel.new("localhost",15000) )
 				resolv.cache = (cache=DNS::Cache.new())
 				
 				# Populate the cache

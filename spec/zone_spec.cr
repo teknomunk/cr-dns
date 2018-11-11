@@ -245,7 +245,7 @@ describe DNS do
 			end
 
 			# Check wildcard request
-			resolv = DNS::Resolver.new( srv.channel_listener )
+			resolv = DNS::Resolver::Remote.new( srv.channel_listener )
 			msg = resolv.resolve( DNS::Message.simple_query( "A", "something.test.localhost." ) )
 			#srv.channel_listener.send_request( DNS::Message.simple_query( "A", "something.test.localhost." ).not_nil! )
 			#msg = srv.channel_listener.get_response()
