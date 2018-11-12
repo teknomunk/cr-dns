@@ -60,7 +60,7 @@ class DNS::Server
 			when Message::{{code.id}}
 				req.message.questions.each {|q|
 					@{{type.id}}_routes.find {|route| route.try_dispatch(req,q) } ||
-					@zones.find {|zone| zone.try_dispatch(req,q) }
+					@zones.find {|zone| zone.try_dispatch(req.message,q) }
 				}
 			{% end %}
 			else

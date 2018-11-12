@@ -5,6 +5,9 @@ class DNS::Zone
 	def initialize( io : IO )
 		do_initialize(io)
 	end
+	def initialize()
+		# Initialize an empty zone
+	end
 
 	property origin : String = "."
 	property records : Array(RR) = [] of RR
@@ -66,16 +69,16 @@ class DNS::Zone
 		end
 	end
 
-	def try_dispatch( req : Server::Request, q : RR )
+	def try_dispatch( message : DNS::Message, q : RR )
 		if /#{@origin}$/ =~ q.name
 			@records.find {|rr|
 				if rr.type == q.type && /^#{rr.name.gsub(".","\.").gsub("*",".*")}$/ =~ q.name
 					if rr.name[0] == '*'
 						rr2 = rr.clone
 						rr2.name = q.name
-						req.message.answers.push(rr2)
+						message.answers.push(rr2)
 					else
-						req.message.answers.push(rr)
+						message.answers.push(rr)
 					end
 					true
 				end
