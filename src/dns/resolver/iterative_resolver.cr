@@ -45,6 +45,9 @@ class DNS::Resolver::Iterative < DNS::Resolver
 		# Attempt to return from the hint zone
 		return msg if @hint_zone.try_dispatch( msg, msg.questions[0] )
 
+		# Will lock up if there are no root hints
+		raise "No root hints" if @root_ns.size == 0
+
 		# If not in the cache, start recursing
 		ch = ::Channel(DNS::Message).new
 		spawn do
@@ -77,6 +80,5 @@ class DNS::Resolver::Iterative < DNS::Resolver
 			end
 		end
 		return ch.receive
-		return nil
 	end
 end
