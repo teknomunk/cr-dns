@@ -1,5 +1,6 @@
 class Mock::NetworkFactory #< DNS::Resolver::Factory
-#	property servers = {} of String => DNS::Server
+	# Comment this line to make it no longer crash
+	property servers = {} of String => DNS::Server
 
 	{% for i in %w(A AAAA) %}
 	def create_resolver_from_{{i.downcase.id}}?( rr : DNS::RR::{{i.id}} ) : DNS::Resolver?
