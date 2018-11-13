@@ -1,5 +1,5 @@
 require "./spec_helper"
-#require "./mock/network_factory.cr"
+require "./mock/network_factory.cr"
 
 describe DNS do
 	describe DNS::Resolver::Iterative do

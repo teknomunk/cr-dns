@@ -1,5 +1,5 @@
 
-class DNS::Resolver::Remote
+class DNS::Resolver::Remote < DNS::Resolver
 	@channel : DNS::Server::ChannelListener|DNS::Resolver::Channel
 	@pending_responses = {} of UInt16 => ::Channel(DNS::Message)?
 	property cache : DNS::Cache?

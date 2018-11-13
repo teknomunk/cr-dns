@@ -5,7 +5,7 @@ class DNS::Resolver::Iterative < DNS::Resolver
 	property cache : DNS::Cache?
 	property factory : DNS::Resolver::Factory = DNS::Resolver::NetworkFactory.new
 
-	property root_ns = [] of DNS::RR::NS
+	property root_ns : Array(DNS::RR::NS) = [] of DNS::RR::NS
 	@hint_zone = DNS::Zone.new()
 
 	def hint( rr = DNS::RR )
@@ -16,14 +16,6 @@ class DNS::Resolver::Iterative < DNS::Resolver
 		@hint_zone.records.push(rr)
 	end
 
-#	def create_resolver_from_a?( rr : DNS::RR::A )
-#		channel = DNS::Resolver::TCPChannel.new( rr.ip_address, 53 )
-#		return DNS::Resolver.new(channel)
-#	end
-#	#def create_resolver_from_aaaa?( rr : DNS::RR::AAAA )
-#	#	# TODO: Implement
-#	#end
-#
 	def create_resolver_from_ns?( rr : DNS::RR::NS )
 		#res = resolve( msg=DNS::Message.simple_query("AAAA", rr.name_server )
 		res = resolve( msg=DNS::Message.simple_query("A", rr.name_server ) )
@@ -51,27 +43,37 @@ class DNS::Resolver::Iterative < DNS::Resolver
 		# If not in the cache, start recursing
 		ch = ::Channel(DNS::Message).new
 		spawn do
+			puts "a"
 			# Select a random root hit to start resolving
-			curr_ns = @root_ns[ rand(@root_ns.size) ]
+			curr_ns : DNS::RR::NS = @root_ns[ rand(@root_ns.size) ]
 
 			while true
+				puts "b"
 				# Try to create a resolver from the current nameserver
 				if (resolv=create_resolver_from_ns?( curr_ns )).nil?
 					msg.response_code = DNS::Message::ResponseCode::ServerFailure
 					ch.send(msg)
 					break
 				else
+					puts "c"
 					res = resolv.resolve(msg)
 
 					# Add response to cache
-					cache.insert(res) if !(cache=@cache).nil?
+					if !(c=@cache).nil?
+						c.insert(res) 
+					end
 
 					if res.answers.size > 0
 						# We have our answer
 						ch.send(res)
 						break
 					else
-						ns_set = res.authority.select {|rr| rr.is_a?(DNS::RR::NS) }
+						ns_set = [] of DNS::RR::NS
+						res.authority.each {|rr| 
+							if rr.is_a?(DNS::RR::NS)
+								ns_set.push(rr)
+							end
+						}
 						curr_ns = ns_set[ rand(ns_set.size) ]
 					end
 				end
