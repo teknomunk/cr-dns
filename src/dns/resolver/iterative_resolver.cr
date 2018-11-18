@@ -6,7 +6,7 @@ class DNS::Resolver::Iterative < DNS::Resolver
 	property factory : DNS::Resolver::Factory = DNS::Resolver::NetworkFactory.new
 
 	property root_ns : Array(DNS::RR::NS) = [] of DNS::RR::NS
-	@hint_zone = DNS::Zone.new()
+	property hint_zone = DNS::Zone.new()
 
 	def hint( rr = DNS::RR )
 		if rr.is_a?(DNS::RR::NS)
