@@ -34,5 +34,9 @@ class DNS::RR::NS < DNS::RR
 	end
 
 	property name_server : String = ""
+
+	def inspect( io : IO )
+		io << "#{@name}	#{@ttl}	#{@cls}	#{@type}	#{@name_server}"
+	end
 end
 

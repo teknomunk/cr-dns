@@ -164,13 +164,10 @@ abstract class DNS::RR
 		io.write rd.to_slice
 	end
 	def inspect( io : IO )
-		io << "#<DNS::RR::"
-		io << @cls
-		io << "::"
-		io << @type
-		io << " "
-		@name.inspect(io)
-		io << ">"
+		io << "#{@name}	#{@ttl}	#{@cls}	#{@type}	# No data"
+	end
+	def inspect_question( io : IO )
+		io << "#{@name}	#{@cls}	#{@type}"
 	end
 end
 

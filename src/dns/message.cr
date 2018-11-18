@@ -78,6 +78,49 @@ class DNS::Message
 		{% end %}
 	end
 
+	def inspect( io : IO )
+		io << "; <<>> DiG 9.13.3 <<>>"
+		io << ";; Got answer:\n"
+		io << ";; ->>HEADER<<- opcode: #{@query_type}, status: #{@response_code}, id: #{id}\n"
+		io << ";; flags: #{@recursion_desired ? "rd " : ""}#{@recursion_available ? "ra " : ""}; "
+		io << "QUERY: #{@questions.size}, "
+		io << "ANSWER: #{@answers.size}, "
+		io << "AUTHORITY: #{@authority.size}, "
+		io << "ADDITIONAL: #{@additional.size}\n"
+		if @questions.size > 0 
+			io << ";; QUESTION SECTION:\n"
+			@questions.each {|q|
+				io << ";"
+				q.inspect_question(io)
+				io << "\n"
+			}
+			io << "\n"
+		end
+		if @answers.size > 0
+			io << ";; ANSWER SECTION:\n"
+			@answers.each {|a|
+				a.inspect(io)
+				io << "\n"
+			}
+			io << "\n"
+		end
+		if @authority.size > 0
+			io << ";; AUTHORITY SECTION:\n"
+			@authority.each {|a|
+				a.inspect(io)
+				io << "\n"
+			}
+		end
+		if @additional.size > 0
+			io << ";; ADDITIONAL SECTION:\n"
+			@additional.each {|a|
+				a.inspect(io)
+				io << "\n"
+			}
+			io << "\n"
+		end
+	end
+
 	def self.decode( io : IO, packet : Bytes )
 		msg = DNS::Message.new
 		msg.id = io.read_network_short

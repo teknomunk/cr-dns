@@ -48,9 +48,11 @@ describe DNS do
 		it "can resolve domains" do
 			msg = DNS::Message.simple_query("A", "www.example.com").not_nil!
 			res = resolver.resolve(msg.not_nil!)	# TODO: Fix this, it will not compile if this is uncommented
-			puts res.inspect
+			#puts res.inspect
 			res.should_not be_nil
-			res.answers.size.should eq(1)
+			if !res.nil?
+				res.answers.size.should eq(1)
+			end
 		end
 	end
 end

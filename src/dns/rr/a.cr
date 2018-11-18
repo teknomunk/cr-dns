@@ -37,5 +37,8 @@ class DNS::RR::A < DNS::RR
 	end
 
 	property ip_address : String = "0.0.0.0"
+	def inspect( io : IO )
+		io << "#{@name}	#{@ttl}	#{@cls}	#{@type}	#{@ip_address}"
+	end
 end
 
