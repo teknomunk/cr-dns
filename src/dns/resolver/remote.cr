@@ -16,8 +16,9 @@ class DNS::Resolver::Remote < DNS::Resolver
 		end
 	end
 	def resolve( msg : DNS::Message, cache_only = false ) : DNS::Message
-		raise "Error" if msg.nil?
-
+		resolve?(msg,cache_only) || raise "Unable to resolve"
+	end
+	def resolve?( msg : DNS::Message, cache_only = false ) : DNS::Message?
 		# If there is a cache and it matches the request, return that result
 		return msg if !(cache=@cache).nil? && cache.find(msg)
 
@@ -35,12 +36,16 @@ class DNS::Resolver::Remote < DNS::Resolver
 
 		# Setup a results channel and send the request to the DNS server
 		channel = @pending_responses[msg.id] = ::Channel(DNS::Message).new
+		puts "sending request"
+		puts msg.inspect()
+
 		@channel.send_request( msg )
-		res = channel.receive()
+		puts "waiting for response"
+		res = channel.receive_with_timeout( 15 )
 		@pending_responses[msg.id] = nil
 
 		# Add responses to the cache if one exists
-		cache.insert(res) if !(cache=@cache).nil?
+		cache.insert(res) if !res.nil? && !(cache=@cache).nil?
 	
 		return res
 	end

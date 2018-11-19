@@ -4,7 +4,9 @@ class Mock::NetworkFactory < DNS::Resolver::Factory
 
 	{% for i in %w(A AAAA) %}
 	def create_resolver_from_{{i.downcase.id}}?( rr : DNS::RR::{{i.id}} ) : DNS::Resolver?
-		if servers.has_key?(index="{{i.id}} #{rr.ip_address}")
+		index="{{i.id}} #{rr.ip_address}"
+		puts "index=#{index}"
+		if servers.has_key?(index)
 			return DNS::Resolver::Remote.new( servers[index].channel_listener )
 		else
 			return nil

@@ -8,9 +8,11 @@ describe DNS do
 		server1.add_zone(DNS::Zone.new(IO::Memory.new(<<-DOC
 			$ORIGIN .
 			*.com.		1D	IN	NS	a.gtld-servers.net.
-			a.gtld-servers.net.	1D	IN	A	1.2.3.4
+			a.gtld-servers.net.	1D	IN	A	198.41.0.4
 			DOC
 		)))
+		server1.run
+
 		# .com nameserver stand in
 		server2 = DNS::Server.new()
 		server2.add_zone(DNS::Zone.new(IO::Memory.new(<<-DOC
@@ -19,6 +21,7 @@ describe DNS do
 			ns1		1D	IN	A	2.3.4.15
 			DOC
 		)))
+		server2.run
 
 		# example.com nameserver stand in
 		server3 = DNS::Server.new()
@@ -29,11 +32,12 @@ describe DNS do
 			ns1		1D	IN	A	2.3.4.15
 			DOC
 		)))
+		server3.run
 
 		resolver = DNS::Resolver::Iterative.new()
 		resolver.factory = (factory=Mock::NetworkFactory.new())
 		
-		factory.servers["A 1.2.3.5"] = server1
+		factory.servers["A 198.41.0.4"] = server1
 		factory.servers["A 1.2.3.4"] = server2
 		factory.servers["A 2.3.4.15"] = server3
 
@@ -47,8 +51,8 @@ describe DNS do
 
 		it "can resolve domains" do
 			msg = DNS::Message.simple_query("A", "www.example.com").not_nil!
-			res = resolver.resolve(msg.not_nil!)	# TODO: Fix this, it will not compile if this is uncommented
-			#puts res.inspect
+			res = resolver.resolve(msg.not_nil!)
+			puts res.inspect
 			res.should_not be_nil
 			if !res.nil?
 				res.answers.size.should eq(1)

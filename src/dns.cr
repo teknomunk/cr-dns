@@ -1,4 +1,5 @@
 require "./dns/*"
+require "./dns/extra/*"
 
 # TODO: Write documentation for `Dns`
 module DNS

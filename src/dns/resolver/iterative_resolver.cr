@@ -17,7 +17,8 @@ class DNS::Resolver::Iterative < DNS::Resolver
 	end
 
 	def create_resolver_from_ns?( ns : DNS::RR::NS )
-		res = resolve( msg=DNS::Message.simple_query("AAAA", ns.name_server ) )
+		puts "create_resolver_from_ns?( #{ns.inspect} )"
+		res = resolve_local( msg=DNS::Message.simple_query("AAAA", ns.name_server ) )
 		#puts "create_resolver_from_ns? -> res:\n#{res.inspect}"
 
 		if !res.nil? && res.answers.size > 0
@@ -26,7 +27,7 @@ class DNS::Resolver::Iterative < DNS::Resolver
 			end
 		end
 
-		res = resolve( msg=DNS::Message.simple_query("A", ns.name_server ) )
+		res = resolve_local( msg=DNS::Message.simple_query("A", ns.name_server ) )
 
 		return nil if res.nil? || res.answers.size == 0
 
@@ -38,8 +39,8 @@ class DNS::Resolver::Iterative < DNS::Resolver
 		end
 	end
 
-	def resolve( msg : DNS::Message ) : DNS::Message?
-		puts "resolve:"
+	def resolve_local( msg : DNS::Message ) : DNS::Message?
+		puts "resolve_local:"
 		puts msg.inspect
 
 		puts "@hint_zone:"
@@ -52,6 +53,15 @@ class DNS::Resolver::Iterative < DNS::Resolver
 		if @hint_zone.try_dispatch( msg, msg.questions[0] )
 			puts "Using hint zone"
 			return msg 
+		end
+
+		return nil
+	end
+
+	def resolve( msg : DNS::Message  ) : DNS::Message?
+
+		if !(res=resolve_local(msg)).nil?
+			return res
 		end
 
 		# Will lock up if there are no root hints
@@ -74,35 +84,43 @@ class DNS::Resolver::Iterative < DNS::Resolver
 
 				# Try to create a resolver from the current nameserver
 				if (resolv=create_resolver_from_ns?( curr_ns )).nil?
-#					puts "b"
-#					puts "Unable to create resolver from ns #{curr_ns.inspect}"
-#					msg.response_code = DNS::Message::ResponseCode::ServerFailure
-#					ch.send(msg)
-#					break
-#				else
-#					puts "c"
-#					res = resolv.resolve(msg)
-#
-#					# Add response to cache
-#					if !(c=@cache).nil?
-#						c.insert(res) 
-#					end
-#
-#					if res.answers.size > 0
-#						puts "e"
-#						# We have our answer
-#						ch.send(res)
-#						break
-#					else
-#						puts "d"
-#						ns_set = [] of DNS::RR::NS
-#						res.authority.each {|rr| 
-#							if rr.is_a?(DNS::RR::NS)
-#								ns_set.push(rr)
-#							end
-#						}
-#						curr_ns = ns_set[ rand(ns_set.size) ]
-#					end
+					puts "b"
+					puts "Unable to create resolver from ns #{curr_ns.inspect}"
+					msg.response_code = DNS::Message::ResponseCode::ServerFailure
+					ch.send(msg)
+					break
+				else
+					puts "c"
+
+					res2 = resolv.resolve(msg)
+					puts "d"
+					if !res2.nil?
+						puts "res=#{res.inspect}"
+					end
+					if res2.nil?
+						# Add response to cache
+						if !res2.nil? !(c=@cache).nil?
+							c.insert(res2)
+						end
+
+						if res2.answers.size > 0
+							puts "e"
+							# We have our answer
+							ch.send(res2)
+							break
+						else
+							puts "d"
+							ns_set = [] of DNS::RR::NS
+							res2.authority.each {|rr| 
+								if rr.is_a?(DNS::RR::NS)
+									ns_set.push(rr)
+								end
+							}
+							curr_ns = ns_set[ rand(ns_set.size) ]
+						end
+					else
+						ch.send(nil)
+					end
 				end
 				
 				sleep 0.1
