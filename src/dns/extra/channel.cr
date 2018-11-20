@@ -3,9 +3,11 @@ abstract class Channel(T)
 		return receive_before( Time.now() + Time::Span.new(0,0,seconds) )
 	end
 	def receive_before( t : Time )
-		while empty? && Time.now() < t
+		puts "receive_before( #{t} )"
+		while empty? && (Time.now() < t)
 			Fiber.yield
 		end
+		puts "drop out"
 		return (empty?) ? nil : self.receive
 	end
 end

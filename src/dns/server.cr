@@ -44,7 +44,9 @@ class DNS::Server
 		loop do
 			@listeners.each {|l|
 				while !l.request_channel.empty?
-					req = l.request_channel.receive
+					req = monitor "enter l.request_channel.receive" {
+						l.request_channel.receive
+					}
 					process_request(req)
 					l.response_channel.send(req)
 				end

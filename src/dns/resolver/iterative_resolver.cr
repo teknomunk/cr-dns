@@ -127,6 +127,6 @@ class DNS::Resolver::Iterative < DNS::Resolver
 			end
 			puts "end"
 		end
-		return ch.receive
+		return ch.receive_with_timeout(30)
 	end
 end

@@ -27,7 +27,7 @@ abstract class DNS::Server::Listener
 		end
 		spawn do
 			loop {
-				res = @response_channel.receive
+				res = monitor "DNS::Server::Listener" { @response_channel.receive }
 				send_response(res)
 			}
 		end

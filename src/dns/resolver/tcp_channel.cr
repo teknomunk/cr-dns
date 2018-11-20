@@ -17,6 +17,6 @@ class DNS::Resolver::TCPChannel < DNS::Resolver::Channel
 		end
 	end
 	def get_response() : DNS::Message
-		return @results.receive
+		return monitor "DNS::Resolver::TCPChannel#get_response()" { @results.receive }
 	end
 end

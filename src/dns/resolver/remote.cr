@@ -36,12 +36,11 @@ class DNS::Resolver::Remote < DNS::Resolver
 
 		# Setup a results channel and send the request to the DNS server
 		channel = @pending_responses[msg.id] = ::Channel(DNS::Message).new
-		puts "sending request"
-		puts msg.inspect()
 
 		@channel.send_request( msg )
 		puts "waiting for response"
 		res = channel.receive_with_timeout( 15 )
+		puts "back"
 		@pending_responses[msg.id] = nil
 
 		# Add responses to the cache if one exists
